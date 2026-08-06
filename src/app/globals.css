@@ -12,6 +12,18 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* 從舊專案 styleByDustin.css 的 :root 移植過來的品牌色。
+   Tailwind 4 不再用 tailwind.config.js —— 設計 token 直接寫在 CSS 的 @theme 裡，
+   定義後即可用 bg-brand / text-brand-teal 這類 utility class。 */
+@theme {
+  --color-brand: #ff9d46;
+  --color-brand-hover: #f87700;
+  --color-brand-teal: #19b9aa;
+  --color-brand-teal-hover: #009084;
+  --color-ink: #3e3a39;
+  --color-ink-soft: #595757;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;

@@ -11,9 +11,9 @@ export default async function RegisterPage() {
   return (
     <main className="flex flex-1 items-center justify-center p-8">
       <div className="w-full max-w-sm">
-        <h2 className="mb-6 text-2xl font-bold text-ink">註冊</h2>
+        <h2 className="mb-6 text-2xl font-bold text-foreground">註冊</h2>
         <RegisterForm />
-        <p className="mt-4 text-sm text-ink-soft">
+        <p className="mt-4 text-sm text-foreground">
           已經有帳號了？{" "}
           <Link href="/login" className="text-brand-teal hover:underline">
             前往登入

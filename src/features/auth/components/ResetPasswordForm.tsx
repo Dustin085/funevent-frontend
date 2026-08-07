@@ -1,36 +1,50 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { ApiError, MessageResponse } from "@/lib/api-types";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import type { ApiError } from "@/lib/api-types";
 
-/** 後端一個欄位可能同時違反多條規則（空字串會同時觸發 @NotBlank 和 @Size） */
 type FieldErrors = Record<string, string[]>;
 
-export function RegisterForm() {
+export function ResetPasswordForm() {
   const router = useRouter();
+  const token: string | null = useSearchParams().get("token");
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
   /** 整體錯誤：409 email 重複、502 連不上… */
   const [error, setError] = useState<string | null>(null);
   /** 欄位層級錯誤：400 @Valid 驗證失敗 */
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
+  // 沒有 token 就不用打 API，一定會是 InvalidResetTokenException
+  if (!token) {
+    return (
+      <p role="alert" className="text-sm text-red-600">
+        連結無效，請重新申請忘記密碼
+      </p>
+    );
+  }
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (newPassword !== confirmPassword) {
+      setError("兩次輸入的密碼不一致");
+      return; // 連 API 都不用打
+    }
+
     setLoading(true);
     setError(null);
     setFieldErrors({});
 
     try {
-      const res = await fetch("/api/auth/register", {
+      const res = await fetch("/api/auth/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, name }),
+        body: JSON.stringify({ token, newPassword }),
       });
 
       if (!res.ok) {
@@ -47,13 +61,18 @@ export function RegisterForm() {
           setFieldErrors(grouped);
         }
 
-        setError(apiError.message ?? "註冊失敗，請稍後再試");
+        setError(apiError.message ?? "密碼重設失敗，請重新申請");
         return;
       }
 
-      // 註冊成功。後端的 register 不簽發 token，所以導到登入頁。
-      router.push("/login");
-      router.refresh();
+      const data: MessageResponse = await res.json();
+      setSuccessMessage(data.message);
+
+      // 給使用者一點時間看到成功訊息,不要立刻跳轉
+      setTimeout(() => {
+        router.push("/login");
+        router.refresh();
+      }, 1500);
     } catch {
       setError("無法連線，請檢查網路");
     } finally {
@@ -61,34 +80,33 @@ export function RegisterForm() {
     }
   };
 
+  // 成功後不再顯示表單，改顯示後端回傳的訊息
+  if (successMessage) {
+    return (
+      <p role="status" className="text-sm text-ink">
+        {successMessage}
+      </p>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit} className="flex w-full flex-col gap-4">
       <Field
-        id="email"
-        label="電子信箱"
-        type="email"
-        value={email}
-        onChange={setEmail}
-        autoComplete="email"
-        errors={fieldErrors.email}
-      />
-      <Field
-        id="password"
-        label="密碼"
+        id="newPassword"
+        label="新密碼"
         type="password"
-        value={password}
-        onChange={setPassword}
+        value={newPassword}
+        onChange={setNewPassword}
         autoComplete="new-password"
-        errors={fieldErrors.password}
+        errors={fieldErrors.newPassword}
       />
       <Field
-        id="name"
-        label="姓名"
-        type="text"
-        value={name}
-        onChange={setName}
-        autoComplete="name"
-        errors={fieldErrors.name}
+        id="confirmPassword"
+        label="確認密碼"
+        type="password"
+        value={confirmPassword}
+        onChange={setConfirmPassword}
+        autoComplete="new-password"
       />
 
       {/* 欄位錯誤已顯示在各欄位下方，這裡只放整體訊息 */}
@@ -103,7 +121,7 @@ export function RegisterForm() {
         disabled={loading}
         className="rounded bg-brand px-4 py-2 font-medium text-white transition-colors hover:bg-brand-hover disabled:opacity-50"
       >
-        {loading ? "註冊中..." : "註冊"}
+        {loading ? "處理中..." : "重設密碼"}
       </button>
     </form>
   );

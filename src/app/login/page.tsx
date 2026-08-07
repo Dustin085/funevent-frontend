@@ -11,12 +11,20 @@ export default async function LoginPage() {
   return (
     <main className="flex flex-1 items-center justify-center p-8">
       <div className="w-full max-w-sm">
-        <h2 className="mb-6 text-2xl font-bold text-ink">登入</h2>
+        <h2 className="mb-6 text-2xl font-bold text-foreground">登入</h2>
         <LoginForm />
-        <p className="mt-4 text-sm text-ink-soft">
+        <p className="mt-4 text-sm text-foreground">
           還沒有帳號？{" "}
           <Link href="/register" className="text-brand-teal hover:underline">
             前往註冊
+          </Link>
+        </p>
+        <p className="mt-4 text-sm text-foreground">
+          <Link
+            href="/forgot-password"
+            className="text-brand-teal hover:underline"
+          >
+            忘記密碼
           </Link>
         </p>
       </div>

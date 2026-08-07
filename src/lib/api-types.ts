@@ -23,3 +23,8 @@ export interface ApiError {
   /** 只有驗證失敗（400）時才會出現 */
   errors?: { field: string; message: string }[];
 }
+
+/** 對應後端 MessageResponse */
+export interface MessageResponse {
+  message: string;
+}

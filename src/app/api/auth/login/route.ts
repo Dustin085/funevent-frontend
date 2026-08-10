@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { setTokenCookie } from '@/lib/auth-cookie';
+import { setTokenCookies } from '@/lib/auth-cookie';
 import type { ApiError, AuthResponse } from '@/lib/api-types';
 
 const API_BASE_URL = process.env.API_BASE_URL ?? 'http://localhost:8080';
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
   const auth: AuthResponse = await springResponse.json();
 
   // token 存進 httpOnly cookie，不回傳給瀏覽器
-  await setTokenCookie(auth.token);
+  await setTokenCookies(auth.accessToken, auth.refreshToken);
 
   // ⚠ 明確列出要回傳的欄位，而不是 { ...auth }。
   // 用展開運算子的話，哪天後端在 AuthResponse 加了敏感欄位，

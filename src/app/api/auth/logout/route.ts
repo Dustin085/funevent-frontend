@@ -1,13 +1,33 @@
 import { NextResponse } from "next/server";
-import { clearTokenCookie } from "@/lib/auth-cookie";
+import { clearTokenCookies, getRefreshToken } from "@/lib/auth-cookie";
+import { ApiError, MessageResponse } from "@/lib/api-types";
+
+const API_BASE_URL = process.env.API_BASE_URL ?? "http://localhost:8080";
 
 /**
  * 登出：清除 httpOnly cookie。
  *
- * 不需要呼叫 Spring —— JWT 是無狀態的，後端沒有「session」可以銷毀。
- * 「登出」在這個架構下就等於「把客戶端手上的 token 拿掉」。
+ * 呼叫 spring logout
  */
 export async function POST() {
-  await clearTokenCookie();
-  return NextResponse.json({ ok: true });
+  const refreshToken = await getRefreshToken();
+  const body = {
+    refreshToken,
+  };
+
+  try {
+    await fetch(`${API_BASE_URL}/api/auth/logout`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  } catch {
+    // 網路問題 —— 記錄即可，不中斷登出流程
+    console.error("通知 Spring 撤銷 refresh token 失敗");
+  }
+
+  // 不論 api 是否有成功打出，前端都要清除 cookies
+  await clearTokenCookies();
+
+  return NextResponse.json({ message: "已登出" });
 }

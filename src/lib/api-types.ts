@@ -1,4 +1,4 @@
-export type RoleType = 'USER' | 'ADMIN';
+export type RoleType = "USER" | "ADMIN";
 
 /** 對應後端 UserResponse */
 export interface UserResponse {
@@ -10,7 +10,8 @@ export interface UserResponse {
 
 /** 對應後端 AuthResponse（含 token） */
 export interface AuthResponse extends UserResponse {
-  token: string;
+  accessToken: string; // 15 分鐘
+  refreshToken: string; // 7 天
 }
 
 /** 對應後端 ErrorResponse */

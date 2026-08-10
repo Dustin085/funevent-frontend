@@ -1,21 +1,11 @@
+import {
+  ACCESS_TOKEN_COOKIE,
+  COOKIE_OPTIONS,
+  ACCESS_TOKEN_MAX_AGE_SECONDS,
+  REFRESH_TOKEN_COOKIE,
+  REFRESH_TOKEN_MAX_AGE_SECONDS,
+} from "@/lib/cookie-config";
 import { cookies } from "next/headers";
-
-const ACCESS_TOKEN_COOKIE = "funevent_access_token";
-const REFRESH_TOKEN_COOKIE = "funevent_refresh_token";
-
-const ACCESS_TOKEN_MAX_AGE_SECONDS = 15 * 60; // 15 分鐘
-const REFRESH_TOKEN_MAX_AGE_SECONDS = 7 * 24 * 60 * 60; // 7 天
-
-/** 兩個 cookie 共用的安全設定 */
-const COOKIE_OPTIONS = {
-  // 瀏覽器的 JS 讀不到。BFF 架構的核心，XSS 得手也偷不走 token
-  httpOnly: true,
-  // 只透過 HTTPS 傳送，開發時是 http://localhost 所以只在正式環境開啟
-  secure: process.env.NODE_ENV === "production",
-  // CSRF 主要防線：跨站發起的請求不會夾帶
-  sameSite: "lax",
-  path: "/",
-} as const;
 
 /**
  * 把 JWT 寫進 httpOnly cookie。

@@ -9,7 +9,7 @@ export const ACCESS_TOKEN_COOKIE = "funevent_access_token";
 export const REFRESH_TOKEN_COOKIE = "funevent_refresh_token";
 
 /** 對齊後端 app.access-token.expiration（900000 毫秒） */
-export const ACCESS_TOKEN_MAX_AGE_SECONDS = 15 * 60;
+export const ACCESS_TOKEN_MAX_AGE_SECONDS = 15 * 60; // 15*60
 /** 對齊後端 app.refresh-token.expiration（604800000 毫秒） */
 export const REFRESH_TOKEN_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
 

@@ -7,7 +7,7 @@ import {
   REFRESH_TOKEN_COOKIE,
   REFRESH_TOKEN_MAX_AGE_SECONDS,
 } from "@/lib/cookie-config";
-import { callSpringRefresh } from "@/lib/refresh-tokens";
+import { refreshOnce } from "@/lib/refresh-tokens";
 
 /**
  * 在頁面渲染之前攔截請求，必要時自動換票。
@@ -34,7 +34,7 @@ export async function proxy(request: NextRequest) {
   }
 
   // AT 過期被瀏覽器自動刪除，但 RT 還在 → 換票
-  const result = await callSpringRefresh(refreshToken);
+  const result = await refreshOnce(refreshToken);
 
   // Spring 連不上：保留 cookie，讓使用者暫時以未登入狀態瀏覽。
   // 不清 cookie 是刻意的 —— 後端恢復後下一次請求就會自動換票成功
@@ -51,7 +51,8 @@ export async function proxy(request: NextRequest) {
     return response;
   }
 
-  const { accessToken: newAccessToken, refreshToken: newRefreshToken } = result.data;
+  const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
+    result.data;
 
   // ⚠ 關鍵：要同時做兩件事，只做一件是最常見的錯誤
   //

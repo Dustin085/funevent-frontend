@@ -86,12 +86,43 @@ export function Topbar({ user }: { user: UserResponse | null }) {
               {/* 共用 LogoutButton，只換樣式，登出邏輯不重複實作 */}
               <LogoutButton
                 className={`${menuBtnClass} bg-brand-teal hover:bg-brand-teal-hover disabled:opacity-60`}
-              />
+              >
+                <LogoutIcon />
+                <span className={menuLabelClass}>登出</span>
+              </LogoutButton>
             </li>
           )}
         </ul>
       </nav>
     </header>
+  );
+}
+
+/**
+ * 登出圖示。舊專案沒有這個圖示（它的登出在會員中心側欄，是純文字按鈕，
+ * Topbar 根本沒有登出），所以這是新畫的。
+ *
+ * 用 inline SVG 而不是 <Image> 載入檔案：描邊走 currentColor，
+ * 自動跟著按鈕的白色文字，不需要再做一個白色變體檔。
+ */
+function LogoutIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+      className="h-[22px] w-[22px] sm:h-[29px] sm:w-[29px]"
+    >
+      {/* 門框 */}
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      {/* 向外的箭頭 */}
+      <polyline points="16 17 21 12 16 7" />
+      <line x1="21" y1="12" x2="9" y2="12" />
+    </svg>
   );
 }
 

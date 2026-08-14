@@ -110,3 +110,13 @@ export interface OrderResponse {
   createdAt: string;
   items: OrderItemResponse[];
 }
+
+/** 對應後端 PaymentInitiationResponse */
+export interface PaymentInitiationResponse {
+  paymentId: number;
+  merchantTradeNo: string;
+  /** 表單要 POST 到的網址（綠界的 AioCheckOut） */
+  paymentUrl: string;
+  /** 要以隱藏欄位送過去的參數。假金流閘道會是空物件 */
+  formFields: Record<string, string>;
+}

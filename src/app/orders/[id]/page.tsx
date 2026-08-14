@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { PayButton } from "@/features/orders/components/PayButton";
 import { formatEventDateTime } from "@/lib/format-date";
 import { SpringApiError, springGet } from "@/lib/spring";
 import type { OrderResponse, OrderStatus } from "@/lib/api-types";
@@ -68,6 +69,16 @@ export default async function OrderDetailPage({
             NT$ {order.totalAmount.toLocaleString("zh-TW")}
           </p>
         </div>
+
+        {order.status === "PENDING" ? (
+          <PayButton orderId={order.id} />
+        ) : (
+          <p className="text-[16px] text-ink-muted">
+            {order.status === "PAID"
+              ? "這筆訂單已完成付款"
+              : "這筆訂單已無法付款"}
+          </p>
+        )}
       </section>
     </main>
   );

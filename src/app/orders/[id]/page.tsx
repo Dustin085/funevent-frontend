@@ -1,15 +1,10 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import { OrderStatusBadge } from "@/features/orders/components/OrderStatusBadge";
 import { PayButton } from "@/features/orders/components/PayButton";
 import { formatEventDateTime } from "@/lib/format-date";
 import { SpringApiError, springGet } from "@/lib/spring";
-import type { OrderResponse, OrderStatus } from "@/lib/api-types";
-
-const STATUS_TEXT: Record<OrderStatus, string> = {
-  PENDING: "待付款",
-  PAID: "已付款",
-  CANCELLED: "已取消",
-  REFUNDED: "已退款",
-};
+import type { OrderResponse } from "@/lib/api-types";
 
 export default async function OrderDetailPage({
   params,
@@ -28,14 +23,16 @@ export default async function OrderDetailPage({
 
   return (
     <main className="mx-auto flex w-full max-w-[720px] flex-col gap-6 px-4 py-8 sm:px-8">
+      <Link href="/orders" className="text-brand-teal hover:underline">
+        ← 回我的訂單
+      </Link>
+
       <section className="flex flex-col gap-5 rounded-[10px] bg-white p-8 shadow-[0_0_2px_1px_rgba(0,0,0,0.3)]">
-        <div className="flex items-baseline justify-between">
+        <div className="flex items-baseline justify-between gap-3">
           <h1 className="text-[28px] font-medium text-ink-soft">
             訂單 #{order.id}
           </h1>
-          <span className="rounded-full bg-brand-amber px-4 py-1 text-white">
-            {STATUS_TEXT[order.status]}
-          </span>
+          <OrderStatusBadge status={order.status} />
         </div>
         <p className="text-ink-muted">
           建立時間：{formatEventDateTime(order.createdAt)}

@@ -1,12 +1,20 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono, Noto_Sans_TC } from "next/font/google";
 import { Topbar } from "@/components/Topbar";
 import { getCurrentUser } from "@/lib/get-current-user";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+/**
+ * 舊專案用的就是 Noto Sans TC。中文在 Geist / Arial 下會 fallback 到系統字型，
+ * 那是跟舊視覺差距最明顯的地方之一。
+ *
+ * 沒有指定 subsets: ["chinese-traditional"] —— 那個子集非常大，
+ * 交給 next/font 依實際用到的字元切分即可。
+ */
+const notoSansTC = Noto_Sans_TC({
+  variable: "--font-noto-sans-tc",
   subsets: ["latin"],
+  weight: ["400", "500", "700"],
 });
 
 const geistMono = Geist_Mono({
@@ -29,9 +37,10 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="zh-TW"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${notoSansTC.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      {/* font-sans 在 globals.css 的 @theme inline 裡指向 --font-noto-sans-tc */}
+      <body className="flex min-h-full flex-col font-sans">
         {/* 登入狀態當作 props 傳給 client component，
             Topbar 自己不抓資料也不存資料 */}
         <Topbar user={user} />

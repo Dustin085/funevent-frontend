@@ -1,14 +1,21 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
+  /* 舊專案沒有暗色模式，先強制亮色。
+     color-scheme 同時會讓瀏覽器的原生控制項（scrollbar、input）維持亮色。
+     專案告一段落後再回來做暗色模式。 */
+  color-scheme: light;
+
+  --background: #f7f9f9; /* 舊專案的 --bg-pri */
+  --background-line: #e2e9f2; /* 舊專案的 --bg-line */
+  --background-size: 40px;
   --foreground: #171717;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-noto-sans-tc);
   --font-mono: var(--font-geist-mono);
 }
 
@@ -22,17 +29,24 @@
   --color-brand-teal-hover: #009084;
   --color-ink: #3e3a39;
   --color-ink-soft: #595757;
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* 活動卡片用到的，同樣取自舊專案的 :root */
+  --color-brand-amber: #ffbf61; /* secondary-2：卡片上的主辦單位文字 */
+  --color-ink-title: #727171; /* gray-5：卡片標題 */
+  --color-ink-muted: #8a8a8a; /* gray-8：地點等次要文字 */
+  --color-surface: #f7f9f9; /* bg-pri：需要純色底的區塊 */
 }
 
 body {
-  background: var(--background);
+  /* 從舊專案移植：conic-gradient 在每個格子左上角畫出 2px 的十字，
+     重複後形成淡色格線。整頁共用同一張背景，
+     所以 header 與 main 之間不會出現接縫。 */
+  background-color: var(--background);
+  background-image: conic-gradient(
+    from 90deg at 2px 2px,
+    var(--background) 90deg,
+    var(--background-line) 0
+  );
+  background-size: var(--background-size) var(--background-size);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }

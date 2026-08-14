@@ -57,3 +57,56 @@ export interface EventSummaryResponse {
   organizerId: number;
   organizerName: string;
 }
+
+export type EventStatus = "DRAFT" | "PUBLISHED" | "CANCELLED";
+export type OrderStatus = "PENDING" | "PAID" | "CANCELLED" | "REFUNDED";
+
+export interface OrganizerResponse {
+  id: number;
+  name: string;
+  introduction: string | null;
+}
+
+/** 對應後端 EventResponse（詳情用，含 description 與巢狀 organizer） */
+export interface EventResponse {
+  id: number;
+  organizer: OrganizerResponse;
+  name: string;
+  description: string;
+  startAt: string;
+  endAt: string;
+  locationName: string | null;
+  address: string | null;
+  status: EventStatus;
+  createdAt: string;
+}
+
+export interface TicketTypeResponse {
+  id: number;
+  name: string;
+  description: string | null;
+  /** BigDecimal 序列化成 JSON number */
+  price: number;
+  capacity: number;
+  stock: number;
+  saleStartAt: string | null;
+  saleEndAt: string | null;
+}
+
+export interface OrderItemResponse {
+  id: number;
+  ticketTypeId: number;
+  /** 下單當下的快照，票種日後改名不影響這裡 */
+  ticketTypeName: string;
+  unitPrice: number;
+  quantity: number;
+  subtotal: number;
+}
+
+export interface OrderResponse {
+  id: number;
+  totalAmount: number;
+  status: OrderStatus;
+  createdAt: string;
+  items: OrderItemResponse[];
+}

@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { ApiError } from "@/lib/api-types";
 
-export function LoginForm() {
+export function LoginForm({ next = "/" }: { next?: string }) {
   const router = useRouter();
 
   const [email, setEmail] = useState("");
@@ -35,7 +35,8 @@ export function LoginForm() {
       }
 
       // 登入成功。cookie 已由 route handler 寫入，這裡拿不到也不需要 token。
-      router.push("/");
+      // next 已在 Server Component 用 safeNextPath 驗過是站內路徑，可以直接用
+      router.push(next);
       // ⚠ 一定要加 refresh：push 可能沿用登入前渲染的 RSC 快取，
       // 那份快取沒有 cookie，會顯示成未登入狀態
       router.refresh();

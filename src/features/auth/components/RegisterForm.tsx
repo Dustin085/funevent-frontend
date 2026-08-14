@@ -7,7 +7,7 @@ import type { ApiError } from "@/lib/api-types";
 /** 後端一個欄位可能同時違反多條規則（空字串會同時觸發 @NotBlank 和 @Size） */
 type FieldErrors = Record<string, string[]>;
 
-export function RegisterForm() {
+export function RegisterForm({ next = "/" }: { next?: string }) {
   const router = useRouter();
 
   const [email, setEmail] = useState("");
@@ -51,8 +51,9 @@ export function RegisterForm() {
         return;
       }
 
-      // 註冊成功。後端的 register 不簽發 token，所以導到登入頁。
-      router.push("/login");
+      // 註冊成功。後端的 register 不簽發 token，所以導到登入頁 ——
+      // 把 next 帶過去，登入完才會回到使用者原本想去的地方
+      router.push(`/login?next=${encodeURIComponent(next)}`);
       router.refresh();
     } catch {
       setError("無法連線，請檢查網路");

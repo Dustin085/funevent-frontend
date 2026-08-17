@@ -38,7 +38,7 @@ export default async function EventDetailPage({
     <main className="mx-auto flex w-full max-w-[1280px] flex-col gap-6 px-4 py-8 sm:px-8 lg:flex-row lg:items-start lg:px-[76px]">
       {/* 左：活動介紹 */}
       <div className="flex flex-1 flex-col gap-6">
-        <section className="flex flex-col rounded-[10px] bg-white px-[27px] py-8 shadow-[0_0_2px_1px_rgba(0,0,0,0.3)]">
+        <section className="flex flex-col rounded-[10px] bg-white px-[27px] py-8 funevent-shadow">
           <h1 className="mb-5 text-[28px] leading-tight font-medium text-ink-soft sm:text-[36px]">
             {event.name}
           </h1>
@@ -71,7 +71,7 @@ export default async function EventDetailPage({
           </dl>
         </section>
 
-        <section className="flex flex-col rounded-[10px] bg-white px-[27px] py-8 shadow-[0_0_2px_1px_rgba(0,0,0,0.3)]">
+        <section className="flex flex-col rounded-[10px] bg-white px-[27px] py-8 funevent-shadow">
           <h2 className="mb-4 text-[24px] font-medium text-ink-soft">
             活動介紹
           </h2>

@@ -27,7 +27,7 @@ export default async function OrderDetailPage({
         ← 回我的訂單
       </Link>
 
-      <section className="flex flex-col gap-5 rounded-[10px] bg-white p-8 shadow-[0_0_2px_1px_rgba(0,0,0,0.3)]">
+      <section className="flex flex-col gap-5 rounded-[10px] bg-white p-8 funevent-shadow">
         <div className="flex items-baseline justify-between gap-3">
           <h1 className="text-[28px] font-medium text-ink-soft">
             訂單 #{order.id}

@@ -24,12 +24,12 @@ import type { UserResponse } from "@/lib/api-types";
  */
 export function Topbar({ user }: { user: UserResponse | null }) {
   return (
-    <header className="flex w-full items-start justify-between gap-2">
+    <header className="flex w-full items-start justify-between gap-2 absolute z-50">
       {/* 左側：Logo */}
       <h1 className="mt-3 ml-3 sm:mt-6 sm:ml-8">
         <Link href="/" className="flex items-start gap-2 sm:gap-3">
           <Image
-            src="/images/logo-en-alt-color.svg"
+            src="/images/logo-en.svg"
             alt="FunEvent"
             width={152}
             height={41}
@@ -37,7 +37,7 @@ export function Topbar({ user }: { user: UserResponse | null }) {
             className="h-auto w-[92px] sm:w-[152px]"
           />
           <Image
-            src="/images/logo-tc-alt-color.svg"
+            src="/images/logo-tc.svg"
             alt="活動趣"
             width={168}
             height={46}

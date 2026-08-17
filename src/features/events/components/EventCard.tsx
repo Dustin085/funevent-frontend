@@ -20,7 +20,7 @@ export function EventCard({ event }: { event: EventSummaryResponse }) {
   const href = `/events/${event.id}`;
 
   return (
-    <article className="group flex h-[400px] w-full max-w-[304px] flex-col gap-[11px] rounded-[10px] bg-white px-[14px] py-[17px] transition-transform duration-[350ms] hover:-translate-y-[2%] hover:scale-105">
+    <article className="group flex h-[400px] w-full max-w-[304px] flex-col gap-[11px] rounded-[10px] bg-white px-[14px] py-[17px] transition-transform duration-[350ms] hover:-translate-y-[2%] hover:scale-105 funevent-shadow">
       {/* 底色的漸層在沒有圖片時就是佔位，有圖時被蓋住 */}
       <Link
         href={href}

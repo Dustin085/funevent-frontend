@@ -40,7 +40,7 @@ export default async function MyOrdersPage({
       <SectionTitle title="我的訂單" />
 
       {orders.content.length === 0 ? (
-        <div className="rounded-[10px] bg-white p-10 text-center shadow-[0_0_2px_1px_rgba(0,0,0,0.3)]">
+        <div className="rounded-[10px] bg-white p-10 text-center funevent-shadow">
           <p className="text-ink-muted">還沒有任何訂單</p>
           <Link
             href="/"
@@ -55,7 +55,7 @@ export default async function MyOrdersPage({
             <li key={order.id}>
               <Link
                 href={`/orders/${order.id}`}
-                className="flex flex-col gap-3 rounded-[10px] bg-white p-6 shadow-[0_0_2px_1px_rgba(0,0,0,0.3)] transition-transform duration-[350ms] hover:-translate-y-[2px]"
+                className="flex flex-col gap-3 rounded-[10px] bg-white p-6 funevent-shadow transition-transform duration-[350ms] hover:-translate-y-[2px]"
               >
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-[18px] font-medium text-ink-soft">

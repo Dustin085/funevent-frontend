@@ -94,7 +94,7 @@ export function TicketTypePicker({
   };
 
   return (
-    <section className="flex flex-col gap-5 rounded-[10px] bg-white p-[35px] shadow-[0_0_2px_1px_rgba(0,0,0,0.3)]">
+    <section className="flex flex-col gap-5 rounded-[10px] bg-white p-[35px] funevent-shadow">
       <p className="text-[20px] font-medium text-ink-soft">選擇票種</p>
 
       {options.length === 0 ? (

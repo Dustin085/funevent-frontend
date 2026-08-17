@@ -1,6 +1,7 @@
 import { SectionTitle } from "@/components/SectionTitle";
 import { CategoryNav } from "@/features/events/components/CategoryNav";
 import { EventCard } from "@/features/events/components/EventCard";
+import { Hero } from "@/features/home/components/Hero";
 import { springGet } from "@/lib/spring";
 import type {
   CategoryResponse,
@@ -17,26 +18,30 @@ export default async function Home() {
   ]);
 
   return (
-    <main className="flex flex-1 flex-col gap-10 px-4 py-8 sm:px-8 lg:px-[76px] lg:py-10">
-      <CategoryNav categories={categories} />
+    <>
+      <Hero />
 
-      <div className="flex flex-col gap-[25px]">
-        <SectionTitle title="即將登場" />
+      <main className="flex flex-1 flex-col gap-10 px-4 py-8 sm:px-8 lg:px-[76px] lg:py-10">
+        <CategoryNav categories={categories} />
 
-        {page.content.length === 0 ? (
-          <p className="py-20 text-center text-ink-muted">
-            目前沒有即將開始的活動
-          </p>
-        ) : (
-          <ul className="grid grid-cols-1 justify-items-center gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {page.content.map((event) => (
-              <li key={event.id} className="w-full max-w-[304px]">
-                <EventCard event={event} />
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </main>
+        <div className="flex flex-col gap-[25px]">
+          <SectionTitle title="即將登場" />
+
+          {page.content.length === 0 ? (
+            <p className="py-20 text-center text-ink-muted">
+              目前沒有即將開始的活動
+            </p>
+          ) : (
+            <ul className="grid grid-cols-1 justify-items-center gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {page.content.map((event) => (
+                <li key={event.id} className="w-full max-w-[304px]">
+                  <EventCard event={event} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </main>
+    </>
   );
 }

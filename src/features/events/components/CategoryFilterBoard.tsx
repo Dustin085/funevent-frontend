@@ -17,7 +17,7 @@ export function CategoryFilterBoard({
   activeCode: string | null;
 }) {
   return (
-    <aside className="flex w-full flex-col gap-[18px] rounded-[10px] bg-white px-[18px] pt-5 pb-[10px] shadow-[0_0_2px_1px_rgba(0,0,0,0.3)] lg:w-[304px] lg:shrink-0">
+    <aside className="flex w-full flex-col gap-[18px] rounded-[10px] bg-white px-[18px] pt-5 pb-[10px] funevent-shadow lg:w-[304px] lg:shrink-0">
       <h2 className="text-[20px] font-medium text-ink-soft">活動分類</h2>
       <ul className="flex flex-wrap gap-x-4 gap-y-2 lg:flex-col lg:gap-y-3">
         <li>

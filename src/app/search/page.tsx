@@ -64,7 +64,7 @@ export default async function SearchPage({
         <CategoryFilterBoard categories={categories} activeCode={activeCode} />
 
         <div className="flex min-w-0 flex-1 flex-col gap-3">
-          <div className="flex h-[70px] items-center rounded-[10px] bg-white px-5 shadow-[0_0_2px_1px_rgba(0,0,0,0.3)]">
+          <div className="flex h-[70px] items-center rounded-[10px] bg-white px-5 funevent-shadow">
             {/* 排序下拉需要 client component 做導頁 + Pageable 的 sort 參數，之後再做 */}
             <p className="text-[20px] font-medium text-ink-title">
               找到 {result.page.totalElements} 項結果

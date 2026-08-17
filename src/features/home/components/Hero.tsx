@@ -19,12 +19,13 @@ const HERO_IMAGES = [
  * 舊版用 .home-page-bg-color-block__block1：83vw 的正圓，
  * 定位在 left:-25vw / top:-35.8vw，這裡照搬。
  *
- * 輪播先放單張：先確認遮罩與版面正確，之後再用 Embla 做成
- * 首頁與活動詳情頁共用的元件。
+ * 輪播是淡入淡出式的，不需要套件，見 HeroCarousel。
  */
 export function Hero() {
   return (
-    <section className="relative flex min-h-[92vh] items-center overflow-hidden">
+    // isolate：建立堆疊脈絡，把內部的 z-10 / z-20 關在這個區塊裡，
+    // 不會跑到根層級去跟 Topbar 的 z-50 排隊。主動劃清界線，而不是靠數字剛好排對
+    <section className="relative isolate flex min-h-[92vh] items-center overflow-hidden">
       {/* 背景色塊。用「正 z + pointer-events-none」把圓拉到輪播「前面」，
           而不是用負 z 把輪播推到後面 ——
           後者只要祖先有 transform 就會失效（transform 會建立堆疊脈絡，

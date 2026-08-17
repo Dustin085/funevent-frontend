@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useCarousel } from "@/lib/use-carousel";
 
 const AUTOPLAY_MS = 5000;
 
@@ -35,25 +35,11 @@ const MASK_STYLE = {
  * 這裡完全不需要負 z-index。
  */
 export function HeroCarousel({ images }: { images: string[] }) {
-  const [active, setActive] = useState(0);
-  const [hovered, setHovered] = useState(false);
-
-  const go = (delta: number) =>
-    setActive((i) => (i + delta + images.length) % images.length);
-
-  useEffect(() => {
-    // 滑鼠在上面時暫停：使用者可能正在看，不該被換掉
-    if (hovered) return;
-    // 尊重系統的「減少動態效果」設定 —— 自動輪播對前庭功能敏感的人是負擔。
-    // 停掉自動播放後仍可用箭頭與圓點手動切換
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
-    const timer = setInterval(
-      () => setActive((i) => (i + 1) % images.length),
-      AUTOPLAY_MS,
-    );
-    return () => clearInterval(timer);
-  }, [hovered, images.length]);
+  // 行為跟活動詳情頁的輪播共用（見 useCarousel），外觀完全不同
+  const { active, setActive, go, paused, setPaused } = useCarousel(
+    images.length,
+    AUTOPLAY_MS,
+  );
 
   return (
     <div className="relative aspect-[3/2] w-[115%] -translate-x-[15%]">
@@ -77,7 +63,7 @@ export function HeroCarousel({ images }: { images: string[] }) {
         {/* 舊版的 .slide-overlay：hover 時壓暗，給「可以點」的回饋 */}
         <div
           className={`absolute inset-0 bg-black transition-opacity duration-[350ms] ${
-            hovered ? "opacity-20" : "opacity-0"
+            paused ? "opacity-20" : "opacity-0"
           }`}
         />
       </div>
@@ -91,8 +77,9 @@ export function HeroCarousel({ images }: { images: string[] }) {
           fill="black"
           className="cursor-pointer opacity-0"
           onClick={() => go(1)}
-          onMouseEnter={() => setHovered(true)}
-          onMouseLeave={() => setHovered(false)}
+          // 滑鼠在上面時暫停：使用者可能正在看，不該被換掉
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
         />
       </svg>
 

@@ -56,7 +56,7 @@ export function EventCard({ event }: { event: EventSummaryResponse }) {
         </h2>
         <div className="flex items-center gap-[6px]">
           <Image
-            src="/images/map-pin-icon.svg"
+            src="/images/map-pin-icon--primary.svg"
             alt=""
             width={13}
             height={13}
@@ -74,7 +74,7 @@ export function EventCard({ event }: { event: EventSummaryResponse }) {
             （對 ticket_types 做 min(price) / sum(stock) 的聚合查詢，
             注意別做成 1+N）。在那之前，這兩個數字不代表任何東西。 */}
         <div className="flex items-baseline justify-between">
-          <p className="text-[16px] font-bold text-brand-teal">NT$ 690 起</p>
+          <p className="text-[16px] font-bold text-brand-amber">NT$ 690 起</p>
           <p className="text-[14px] text-ink-muted">剩 32 張</p>
         </div>
       </div>

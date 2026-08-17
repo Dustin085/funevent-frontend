@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { LogoutButton } from "@/features/auth/components/LogoutButton";
 import type { UserResponse } from "@/lib/api-types";
 
@@ -17,32 +18,45 @@ import type { UserResponse } from "@/lib/api-types";
  * - 移除 jQuery 動畫（SearchDrawer）—— 之後要做搜尋時用 CSS transition 重寫。
  * - 移除「雙北」地區顯示 —— 後端沒有地區欄位也沒有篩選端點，
  *   先不放「看起來可以點但什麼都不會發生」的 UI。
+ * - 定位方式：舊專案是「一律 absolute + 其他頁面各自補 margin-top」，
+ *   那表示 Topbar 的高度散落在每一頁；改成只有首頁 absolute，
+ *   其他頁面走正常文件流，就沒有要同步維護的間距了。
  * - CSS 沒有移植，改用 Tailwind 重寫；色票取自舊專案的 :root 變數。
  *
  * RWD：手機上只留圖示、隱藏文字標籤。四個按鈕帶文字在 375px 寬度下必定溢出，
  * 而縮小膠囊比換成漢堡選單更能保住舊設計的視覺記憶點。
  */
 export function Topbar({ user }: { user: UserResponse | null }) {
+  // 首頁的 Topbar 浮在主視覺之上：絕對定位（不佔空間）+ 白色 logo。
+  // 其他頁面是正常文件流，logo 用彩色版 —— 白色 logo 在淺色背景上會消失。
+  const isHome = usePathname() === "/";
+
   return (
-    <header className="flex w-full items-start justify-between gap-2 absolute z-50">
+    <header
+      className={`flex w-full items-start justify-between gap-2 ${
+        isHome ? "absolute inset-x-0 top-0 z-50" : "relative"
+      }`}
+    >
       {/* 左側：Logo */}
       <h1 className="mt-3 ml-3 sm:mt-6 sm:ml-8">
         <Link href="/" className="flex items-start gap-2 sm:gap-3">
-          <Image
-            src="/images/logo-en.svg"
+          <Logo
+            whiteSrc="/images/logo-en.svg"
+            colorSrc="/images/logo-en-alt-color.svg"
             alt="FunEvent"
             width={152}
             height={41}
-            priority
-            className="h-auto w-[92px] sm:w-[152px]"
+            widthClass="w-[92px] sm:w-[152px]"
+            whiteOnDesktop={isHome}
           />
-          <Image
-            src="/images/logo-tc.svg"
+          <Logo
+            whiteSrc="/images/logo-tc.svg"
+            colorSrc="/images/logo-tc-alt-color.svg"
             alt="活動趣"
             width={168}
             height={46}
-            priority
-            className="h-auto w-[102px] sm:w-[168px]"
+            widthClass="w-[102px] sm:w-[168px]"
+            whiteOnDesktop={isHome}
           />
         </Link>
       </h1>
@@ -97,6 +111,69 @@ export function Topbar({ user }: { user: UserResponse | null }) {
         </ul>
       </nav>
     </header>
+  );
+}
+
+/**
+ * Logo 有白色與彩色兩版。
+ *
+ * 首頁「桌機版」用白色 —— 它壓在 Hero 那顆青色圓上。
+ * 但手機版的圓移到畫面中央，左上角仍是淺色格線背景，
+ * 白色 logo 會直接消失，所以手機一律用彩色。
+ *
+ * 兩張都渲染、用斷點切換顯示：<img src> 沒辦法用 media query 切換，
+ * 而這兩個 SVG 各只有幾 KB。被 display:none 的那張不會進無障礙樹，
+ * 所以不會有重複朗讀的問題。
+ */
+function Logo({
+  whiteSrc,
+  colorSrc,
+  alt,
+  width,
+  height,
+  widthClass,
+  whiteOnDesktop,
+}: {
+  whiteSrc: string;
+  colorSrc: string;
+  alt: string;
+  width: number;
+  height: number;
+  widthClass: string;
+  whiteOnDesktop: boolean;
+}) {
+  if (!whiteOnDesktop) {
+    return (
+      <Image
+        src={colorSrc}
+        alt={alt}
+        width={width}
+        height={height}
+        priority
+        className={`h-auto ${widthClass}`}
+      />
+    );
+  }
+
+  return (
+    <>
+      <Image
+        src={colorSrc}
+        alt={alt}
+        width={width}
+        height={height}
+        priority
+        className={`h-auto ${widthClass} lg:hidden`}
+      />
+      <Image
+        src={whiteSrc}
+        alt={alt}
+        width={width}
+        height={height}
+        priority
+        className={`hidden h-auto ${widthClass} lg:block`}
+      />
+    </>
   );
 }
 

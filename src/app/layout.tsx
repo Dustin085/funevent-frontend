@@ -3,6 +3,7 @@ import { Geist_Mono, Noto_Sans_TC } from "next/font/google";
 import { Topbar } from "@/components/Topbar";
 import { getCurrentUser } from "@/lib/get-current-user";
 import "./globals.css";
+import { Footer } from "@/components/Footer";
 
 /**
  * 舊專案用的就是 Noto Sans TC。中文在 Geist / Arial 下會 fallback 到系統字型，
@@ -45,6 +46,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
             Topbar 自己不抓資料也不存資料 */}
         <Topbar user={user} />
         {children}
+        <Footer />
       </body>
     </html>
   );

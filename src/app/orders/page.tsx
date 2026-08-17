@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Pagination } from "@/components/Pagination";
 import { SectionTitle } from "@/components/SectionTitle";
 import { OrderStatusBadge } from "@/features/orders/components/OrderStatusBadge";
 import { formatEventDateTime } from "@/lib/format-date";
@@ -84,42 +85,12 @@ export default async function MyOrdersPage({
         </ul>
       )}
 
-      {totalPages > 1 && (
-        <nav className="flex items-center justify-center gap-4">
-          <PageLink page={humanPage - 1} disabled={humanPage <= 1}>
-            上一頁
-          </PageLink>
-          <p className="text-ink-soft">
-            {humanPage} / {totalPages}
-          </p>
-          <PageLink page={humanPage + 1} disabled={humanPage >= totalPages}>
-            下一頁
-          </PageLink>
-        </nav>
-      )}
+      {/* Pagination 自己會在只有一頁時不渲染 */}
+      <Pagination
+        currentPage={humanPage}
+        totalPages={totalPages}
+        buildHref={(p) => `/orders?page=${p}`}
+      />
     </main>
-  );
-}
-
-/** 用 <Link> 而不是按鈕：翻頁是導航，要能被複製網址、能用瀏覽器的上一頁返回 */
-function PageLink({
-  page,
-  disabled,
-  children,
-}: {
-  page: number;
-  disabled: boolean;
-  children: React.ReactNode;
-}) {
-  if (disabled) {
-    return <span className="text-ink-muted opacity-50">{children}</span>;
-  }
-  return (
-    <Link
-      href={`/orders?page=${page}`}
-      className="text-brand-teal hover:underline"
-    >
-      {children}
-    </Link>
   );
 }

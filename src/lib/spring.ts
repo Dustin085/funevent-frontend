@@ -24,7 +24,7 @@ export class SpringApiError extends Error {
  */
 export async function springGet<T>(
   path: string,
-  options: { auth?: boolean } = {},
+  options: { auth?: boolean; revalidate?: number } = {},
 ): Promise<T> {
   const headers: Record<string, string> = {};
 
@@ -35,9 +35,11 @@ export async function springGet<T>(
 
   const res = await fetch(`${API_BASE_URL}${path}`, {
     headers,
-    // 活動列表會因發布／下架而變動，先一律不快取。
-    // 之後要調校時，公開端點可以改成 next: { revalidate: 60 }
-    cache: "no-store",
+    // 預設不快取：活動列表會因發布／下架而變動。
+    // 靜態資料（例如分類清單是 enum，除非改程式碼否則不會變）可以傳 revalidate 秒數
+    ...(options.revalidate === undefined
+      ? { cache: "no-store" as const }
+      : { next: { revalidate: options.revalidate } }),
   });
 
   if (!res.ok) {

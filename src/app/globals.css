@@ -35,6 +35,7 @@
   --color-ink-title: #727171; /* gray-5：卡片標題 */
   --color-ink-muted: #8a8a8a; /* gray-8：地點等次要文字 */
   --color-surface: #f7f9f9; /* bg-pri：需要純色底的區塊 */
+  --color-ink-brown: #6b5240; /* deep-2：分類卡片標題 */
 }
 
 body {

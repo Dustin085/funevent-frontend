@@ -53,12 +53,27 @@ export interface EventSummaryResponse {
   /** ISO-8601，例如 2026-09-12T02:00:00Z */
   startAt: string;
   endAt: string;
+  /** 常數名（MUSIC_GROOVE），用來組篩選連結與推導圖示檔名 */
+  categoryCode: string;
+  /** 顯示用（音樂律動） */
+  categoryName: string;
+  /** 已是簡稱（新北） */
+  city: string;
+  district: string | null;
   locationName: string | null;
+  /** sort_order 最小的那張，沒有圖時為 null */
+  coverImageUrl: string | null;
   organizerId: number;
   organizerName: string;
 }
 
 export type EventStatus = "DRAFT" | "PUBLISHED" | "CANCELLED";
+
+/** 對應後端 CategoryResponse。code 給程式用、name 給人看 */
+export interface CategoryResponse {
+  code: string;
+  name: string;
+}
 export type OrderStatus = "PENDING" | "PAID" | "CANCELLED" | "REFUNDED";
 
 export interface OrganizerResponse {
@@ -75,8 +90,14 @@ export interface EventResponse {
   description: string;
   startAt: string;
   endAt: string;
+  categoryCode: string;
+  categoryName: string;
+  city: string;
+  district: string | null;
   locationName: string | null;
   address: string | null;
+  /** 依 sort_order 排序，第一張是封面 */
+  imageUrls: string[];
   status: EventStatus;
   createdAt: string;
 }

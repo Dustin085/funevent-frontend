@@ -8,6 +8,18 @@ import { SpringApiError, springGet } from "@/lib/spring";
 import type { EventResponse, TicketTypeResponse } from "@/lib/api-types";
 import { SectionTitle } from "@/components/SectionTitle";
 
+/**
+ * ⚠️ 評分與標籤都是寫死的裝飾資料，只為了確認版面 ——
+ * 這兩個數字與文字不代表任何東西。
+ *
+ * 要變成真的分別需要：
+ * - 評分：一整套評論系統（comments 表、訂單完成才能評、avg + count 聚合且不能做成 1+N、
+ *   一張訂單只能評一次的約束）
+ * - 標籤：events 與 tags 的多對多，以及主辦者建立活動時的標籤輸入介面
+ */
+const PLACEHOLDER_RATING = { score: 4.9, count: 115 };
+const PLACEHOLDER_TAGS = ["新手友善", "親子同樂", "室內活動"];
+
 export default async function EventDetailPage({
   params,
 }: PageProps<"/events/[id]">) {
@@ -55,6 +67,23 @@ export default async function EventDetailPage({
           {event.name}
         </h1>
 
+        {/* ⚠️ 裝飾用的假評分，見檔案頂端的說明 */}
+        <div className="mb-5 flex items-center gap-[5px]">
+          <Image
+            src="/images/rating-icon--filled.svg"
+            alt=""
+            width={20}
+            height={20}
+            aria-hidden
+          />
+          <p className="text-[20px] text-ink">
+            {PLACEHOLDER_RATING.score}
+            <span className="text-ink-muted">
+              （{PLACEHOLDER_RATING.count}）
+            </span>
+          </p>
+        </div>
+
         <dl className="grid grid-cols-[auto_1fr] gap-x-[10px] gap-y-5">
           <InfoLabel icon="/images/date-icon.svg" text="日期：" />
           <dd className="text-ink-soft">
@@ -81,6 +110,31 @@ export default async function EventDetailPage({
             )}
           </dd>
         </dl>
+
+        {/* 分隔線。舊版的 .split-line-row：1px、gray-3 */}
+        <div className="my-5 h-px w-full bg-[#d9d9d9]" />
+
+        {/* ⚠️ 裝飾用的假標籤，見檔案頂端的說明。
+            之後標籤會是可點的（連到搜尋頁），現在還沒有對應的篩選端點 */}
+        <div className="flex items-center gap-[6px]">
+          <Image
+            src="/images/tag-icon.svg"
+            alt=""
+            width={24}
+            height={24}
+            aria-hidden
+          />
+          <ul className="flex flex-wrap items-center gap-[6px]">
+            {PLACEHOLDER_TAGS.map((tag) => (
+              <li
+                key={tag}
+                className="rounded-[20px] bg-brand-amber px-[10px] py-[5px] text-[14px] text-white"
+              >
+                #{tag}
+              </li>
+            ))}
+          </ul>
+        </div>
       </section>
 
       {/* 左下：活動介紹 */}

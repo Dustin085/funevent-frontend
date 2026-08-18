@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { HeroCarousel } from "./HeroCarousel";
 import type { HeroSlide } from "./HeroCarousel";
-import { Decoration } from "@/features/home/components/Decoration";
+import { Decoration } from "@/components/Decoration";
 
 /**
  * 一場有封面圖的活動都沒有時的退路。

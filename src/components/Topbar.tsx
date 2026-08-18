@@ -19,7 +19,7 @@ import type { UserResponse } from "@/lib/api-types";
  * - 移除「雙北」地區顯示 —— 後端沒有地區欄位也沒有篩選端點，
  *   先不放「看起來可以點但什麼都不會發生」的 UI。
  * - 定位方式：舊專案是「一律 absolute + 其他頁面各自補 margin-top」，
- *   那表示 Topbar 的高度散落在每一頁；改成只有首頁 absolute，
+ *   那表示 Topbar 的高度散落在每一頁；改成只有底下鋪了色塊的頁面 absolute，
  *   其他頁面走正常文件流，就沒有要同步維護的間距了。
  * - CSS 沒有移植，改用 Tailwind 重寫；色票取自舊專案的 :root 變數。
  *
@@ -27,14 +27,28 @@ import type { UserResponse } from "@/lib/api-types";
  * 而縮小膠囊比換成漢堡選單更能保住舊設計的視覺記憶點。
  */
 export function Topbar({ user }: { user: UserResponse | null }) {
-  // 首頁的 Topbar 浮在主視覺之上：絕對定位（不佔空間）+ 白色 logo。
+  const pathname = usePathname();
+
+  // 「浮動」的頁面：Topbar 底下有大面積深色色塊可以壓，
+  // 所以絕對定位（不佔空間）+ 白色 logo。
   // 其他頁面是正常文件流，logo 用彩色版 —— 白色 logo 在淺色背景上會消失。
-  const isHome = usePathname() === "/";
+  // ⚠️ 這裡判斷的是「這一頁有沒有深色底」，不是「這是哪一頁」——
+  // 之後任何頁面要放 hero 色塊，加進這個判斷即可
+  const isHome = pathname === "/";
+  const isEventDetail = /^\/events\/[^/]+$/.test(pathname);
+  const isFloating = isHome || isEventDetail;
+
+  // 左上角的底色決定 logo 用哪一版，見 Logo 的說明
+  const logoWhite: LogoWhite = isEventDetail
+    ? "always"
+    : isHome
+      ? "desktop"
+      : "never";
 
   return (
     <header
       className={`flex w-full items-start justify-between gap-2 ${
-        isHome ? "absolute inset-x-0 top-0 z-50" : "relative"
+        isFloating ? "absolute inset-x-0 top-0 z-50" : "relative"
       }`}
     >
       {/* 左側：Logo */}
@@ -47,7 +61,7 @@ export function Topbar({ user }: { user: UserResponse | null }) {
             width={152}
             height={41}
             widthClass="w-[92px] sm:w-[152px]"
-            whiteOnDesktop={isHome}
+            white={logoWhite}
           />
           <Logo
             whiteSrc="/images/logo-tc.svg"
@@ -56,7 +70,7 @@ export function Topbar({ user }: { user: UserResponse | null }) {
             width={168}
             height={46}
             widthClass="w-[102px] sm:w-[168px]"
-            whiteOnDesktop={isHome}
+            white={logoWhite}
           />
         </Link>
       </h1>
@@ -114,16 +128,18 @@ export function Topbar({ user }: { user: UserResponse | null }) {
   );
 }
 
+type LogoWhite = "always" | "desktop" | "never";
+
 /**
- * Logo 有白色與彩色兩版。
+ * Logo 有白色與彩色兩版，用哪一版取決於它壓在什麼底色上。
  *
- * 首頁「桌機版」用白色 —— 它壓在 Hero 那顆青色圓上。
- * 但手機版的圓移到畫面中央，左上角仍是淺色格線背景，
- * 白色 logo 會直接消失，所以手機一律用彩色。
+ * "desktop"（首頁）：桌機壓在青色圓上用白色，
+ *   但手機版的圓移到畫面中央，左上角仍是淺色格線背景 —— 白色會直接消失。
+ * "always"（活動詳情頁）：青色圓固定在左上角，兩種尺寸都壓在青色上。
  *
- * 兩張都渲染、用斷點切換顯示：<img src> 沒辦法用 media query 切換，
- * 而這兩個 SVG 各只有幾 KB。被 display:none 的那張不會進無障礙樹，
- * 所以不會有重複朗讀的問題。
+ * "desktop" 會把兩張都渲染、用斷點切換顯示：
+ * <img src> 沒辦法用 media query 切換，而這兩個 SVG 各只有幾 KB。
+ * 被 display:none 的那張不會進無障礙樹，所以不會有重複朗讀的問題。
  */
 function Logo({
   whiteSrc,
@@ -132,7 +148,7 @@ function Logo({
   width,
   height,
   widthClass,
-  whiteOnDesktop,
+  white,
 }: {
   whiteSrc: string;
   colorSrc: string;
@@ -140,12 +156,12 @@ function Logo({
   width: number;
   height: number;
   widthClass: string;
-  whiteOnDesktop: boolean;
+  white: LogoWhite;
 }) {
-  if (!whiteOnDesktop) {
+  if (white !== "desktop") {
     return (
       <Image
-        src={colorSrc}
+        src={white === "always" ? whiteSrc : colorSrc}
         alt={alt}
         width={width}
         height={height}

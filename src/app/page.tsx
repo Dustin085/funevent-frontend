@@ -1,6 +1,6 @@
 import { CategoryNav } from "@/features/events/components/CategoryNav";
 import { EventSection } from "@/features/events/components/EventSection";
-import { Decoration } from "@/features/home/components/Decoration";
+import { Decoration } from "@/components/Decoration";
 import { Hero } from "@/features/home/components/Hero";
 import type { HeroSlide } from "@/features/home/components/HeroCarousel";
 import { TopicSection } from "@/features/home/components/TopicSection";
@@ -59,7 +59,6 @@ export default async function Home() {
       <main className="flex flex-1 flex-col gap-10 overflow-x-clip px-4 py-8 sm:px-8 lg:px-[76px] lg:py-10">
         {/* relative 當定位基準，isolate 把 -z-10 關在這一格裡 */}
         <div className="relative isolate">
-          
           <CategoryNav categories={categories} />
         </div>
 

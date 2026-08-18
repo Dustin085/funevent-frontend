@@ -213,37 +213,6 @@ export default async function EventDetailPage({
             </p>
           </DetailSection>
 
-          {/* 這一區是真資料 —— 票種本來就撈進來了。
-              右側的方案板是「拿來買」的，這裡是「拿來讀」的 */}
-          {/* <DetailSection
-            id={EVENT_SECTION_IDS.plans}
-            title="選擇方案"
-            className="mt-[25px]"
-          >
-            <ul className="flex flex-col gap-3">
-              {ticketTypes.map((ticketType) => (
-                <li
-                  key={ticketType.id}
-                  className="flex items-center justify-between gap-4 rounded-[10px] border border-[#d9d9d9] px-5 py-4"
-                >
-                  <div className="min-w-0">
-                    <p className="text-[18px] font-medium text-ink-soft">
-                      {ticketType.name}
-                    </p>
-                    {ticketType.description && (
-                      <p className="text-[14px] text-ink-muted">
-                        {ticketType.description}
-                      </p>
-                    )}
-                  </div>
-                  <p className="shrink-0 text-[18px] font-bold text-brand-amber">
-                    NT$ {ticketType.price.toLocaleString("zh-TW")}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          </DetailSection> */}
-
           {/* ⚠️ 假資料 */}
           <DetailSection
             id={EVENT_SECTION_IDS.notice}

@@ -14,7 +14,6 @@
 export const EVENT_SECTION_IDS = {
   overview: "event-overview",
   description: "event-description",
-  // plans: "event-plans",
   notice: "event-notice",
   organizer: "event-organizer",
   comments: "event-comments",
@@ -35,7 +34,6 @@ export const SECTION_ANCHOR_OFFSET = 80;
 export const EVENT_NAV_ITEMS = [
   { id: EVENT_SECTION_IDS.overview, label: "活動主頁" },
   { id: EVENT_SECTION_IDS.description, label: "活動介紹" },
-  // { id: EVENT_SECTION_IDS.plans, label: "選擇方案" },
   { id: EVENT_SECTION_IDS.notice, label: "注意事項" },
   { id: EVENT_SECTION_IDS.organizer, label: "主辦單位" },
   { id: EVENT_SECTION_IDS.comments, label: "活動評論" },

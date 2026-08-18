@@ -1,6 +1,13 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { EventImageCarousel } from "@/features/events/components/EventImageCarousel";
+import { EventInnerNav } from "@/features/events/components/EventInnerNav";
+// ⚠️ 常數要從中性模組拿，不能從上面那個 "use client" 檔案拿 ——
+// 那樣會拿到 client reference 代理，id 讀出來是 undefined
+import {
+  EVENT_SECTION_IDS,
+  SECTION_ANCHOR_OFFSET,
+} from "@/features/events/event-sections";
 import { TicketTypePicker } from "@/features/events/components/TicketTypePicker";
 import type { TicketTypeOption } from "@/features/events/components/TicketTypePicker";
 import { formatEventDateTime } from "@/lib/format-date";
@@ -20,6 +27,32 @@ import { Decoration } from "@/components/Decoration";
  */
 const PLACEHOLDER_RATING = { score: 4.9, count: 115 };
 const PLACEHOLDER_TAGS = ["新手友善", "親子同樂", "室內活動"];
+
+/** ⚠️ 後端沒有「注意事項」欄位。之後要嘛在 events 加一個 notice 欄位，
+    要嘛併進已決定要做的 event_sections 表（多段式活動介紹） */
+const PLACEHOLDER_NOTICE = `1. 請於活動開始前 15 分鐘抵達現場報到。
+2. 活動如遇天候因素取消，將於前一日 18:00 前通知並全額退款。
+3. 為維護講師與其他學員權益，課程進行中請勿錄影。
+4. 報名完成後恕不轉讓，如需退票請於活動前 7 日提出。`;
+
+/** ⚠️ 評論系統整套都還沒做，見上方 PLACEHOLDER_RATING 的說明 */
+const PLACEHOLDER_COMMENTS = [
+  {
+    name: "陳小姐",
+    score: 5,
+    text: "老師很有耐心，第一次接觸也完全跟得上，會再來！",
+  },
+  {
+    name: "王先生",
+    score: 5,
+    text: "帶小孩一起參加，場地乾淨，器材也維護得很好。",
+  },
+  {
+    name: "林同學",
+    score: 4,
+    text: "內容紮實，唯一小可惜是時間有點趕，希望能加長。",
+  },
+];
 
 export default async function EventDetailPage({
   params,
@@ -79,8 +112,12 @@ export default async function EventDetailPage({
           靠自動排列的話其餘三塊會整個遞補錯位。
           通則：只要有子元素是條件式渲染的，就不要依賴自動排列。 */}
 
-        {/* 左上：主視覺輪播 */}
-        <div className="lg:col-start-1 lg:row-start-1">
+        {/* 左上：主視覺輪播。也是導覽列第一個分頁的目標 */}
+        <div
+          id={EVENT_SECTION_IDS.overview}
+          style={{ scrollMarginTop: SECTION_ANCHOR_OFFSET }}
+          className="lg:col-start-1 lg:row-start-1"
+        >
           <EventImageCarousel images={event.imageUrls} alt={event.name} />
         </div>
 
@@ -161,16 +198,122 @@ export default async function EventDetailPage({
           </div>
         </section>
 
-        {/* 左下：活動介紹 */}
-        <section className="funevent-shadow flex flex-col gap-1.5 rounded-[10px] bg-white px-[27px] py-8 lg:col-start-1 lg:row-start-2">
-          {/* <h2 className="mb-4 text-[24px] font-medium text-ink-soft">活動介紹</h2> */}
-          <SectionTitle title="活動介紹" />
-          {/* description 是純文字（後端是 TEXT，沒有富文本編輯器），
-            用 whitespace-pre-line 保留使用者輸入的換行 */}
-          <p className="leading-8 whitespace-pre-line text-ink-soft">
-            {event.description}
-          </p>
-        </section>
+        {/* 左下：內部導覽列 + 所有內容區塊。
+            ⚠️ 這一層不能用 gap —— 導覽列的分頁標籤是貼著「活動介紹」上緣的，
+            中間有間距就變成兩個分離的東西了。改成除了第一個區塊外各自加 mt */}
+        <div className="flex flex-col lg:col-start-1 lg:row-start-2">
+          <EventInnerNav />
+
+          <DetailSection
+            id={EVENT_SECTION_IDS.description}
+            title="活動介紹"
+            // 上緣圓角拿掉，跟導覽列的分頁標籤接成一體
+            className="rounded-t-none"
+          >
+            {/* description 是純文字（後端是 TEXT，沒有富文本編輯器），
+                用 whitespace-pre-line 保留使用者輸入的換行 */}
+            <p className="leading-8 whitespace-pre-line text-ink-soft">
+              {event.description}
+            </p>
+          </DetailSection>
+
+          {/* 這一區是真資料 —— 票種本來就撈進來了。
+              右側的方案板是「拿來買」的，這裡是「拿來讀」的 */}
+          <DetailSection
+            id={EVENT_SECTION_IDS.plans}
+            title="選擇方案"
+            className="mt-[25px]"
+          >
+            <ul className="flex flex-col gap-3">
+              {ticketTypes.map((ticketType) => (
+                <li
+                  key={ticketType.id}
+                  className="flex items-center justify-between gap-4 rounded-[10px] border border-[#d9d9d9] px-5 py-4"
+                >
+                  <div className="min-w-0">
+                    <p className="text-[18px] font-medium text-ink-soft">
+                      {ticketType.name}
+                    </p>
+                    {ticketType.description && (
+                      <p className="text-[14px] text-ink-muted">
+                        {ticketType.description}
+                      </p>
+                    )}
+                  </div>
+                  <p className="shrink-0 text-[18px] font-bold text-brand-amber">
+                    NT$ {ticketType.price.toLocaleString("zh-TW")}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </DetailSection>
+
+          {/* ⚠️ 假資料 */}
+          <DetailSection
+            id={EVENT_SECTION_IDS.notice}
+            title="注意事項"
+            className="mt-[25px]"
+          >
+            <p className="leading-8 whitespace-pre-line text-ink-soft">
+              {PLACEHOLDER_NOTICE}
+            </p>
+          </DetailSection>
+
+          {/* 這一區也是真資料 */}
+          <DetailSection
+            id={EVENT_SECTION_IDS.organizer}
+            title="主辦單位"
+            className="mt-[25px]"
+          >
+            <div className="flex items-start gap-4">
+              <Image
+                src="/images/founder-icon.svg"
+                alt=""
+                width={48}
+                height={48}
+                aria-hidden
+                className="shrink-0"
+              />
+              <div>
+                <p className="text-[20px] font-medium text-ink-soft">
+                  {event.organizer.name}
+                </p>
+                {event.organizer.introduction && (
+                  <p className="mt-2 leading-8 text-ink-muted">
+                    {event.organizer.introduction}
+                  </p>
+                )}
+              </div>
+            </div>
+          </DetailSection>
+
+          {/* ⚠️ 假資料 */}
+          <DetailSection
+            id={EVENT_SECTION_IDS.comments}
+            title="活動評論"
+            className="mt-[25px]"
+          >
+            <ul className="flex flex-col gap-4">
+              {PLACEHOLDER_COMMENTS.map((comment) => (
+                <li
+                  key={comment.name}
+                  className="border-b border-[#d9d9d9] pb-4 last:border-0 last:pb-0"
+                >
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-ink-soft">{comment.name}</p>
+                    <span className="text-[14px] text-brand-amber">
+                      {"★".repeat(comment.score)}
+                      <span className="text-ink-muted">
+                        {"★".repeat(5 - comment.score)}
+                      </span>
+                    </span>
+                  </div>
+                  <p className="mt-1 text-ink-muted">{comment.text}</p>
+                </li>
+              ))}
+            </ul>
+          </DetailSection>
+        </div>
 
         {/* 右下：方案板。舊版用 jQuery 監聽 scroll 手動算 top，
           現在用原生 position: sticky，零 JavaScript。
@@ -181,6 +324,37 @@ export default async function EventDetailPage({
         </aside>
       </main>
     </div>
+  );
+}
+
+/**
+ * 詳情頁的一個內容區塊：白卡片 + SectionTitle。
+ *
+ * ⚠️ 名稱不用 EventSection —— 那個已經被首頁的「一排活動卡」用掉了。
+ */
+function DetailSection({
+  id,
+  title,
+  className = "",
+  children,
+}: {
+  id: string;
+  title: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section
+      id={id}
+      // ⚠️ 跳過來時瀏覽器會把區塊上緣對齊視窗上緣，那裡被黏住的導覽列蓋住。
+      // 用 inline style 而不是 scroll-mt-[…]：這個數字必須和導覽列的
+      // 掃描線是同一個，寫成 Tailwind class 等於抄第二遍，遲早會分岔
+      style={{ scrollMarginTop: SECTION_ANCHOR_OFFSET }}
+      className={`funevent-shadow flex flex-col gap-1.5 rounded-[10px] bg-white px-[27px] py-8 ${className}`}
+    >
+      <SectionTitle title={title} />
+      {children}
+    </section>
   );
 }
 

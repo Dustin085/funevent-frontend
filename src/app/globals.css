@@ -56,6 +56,14 @@ body {
   color: var(--foreground);
 }
 
+/* 點活動頁內部導覽列時平滑捲動。交給 CSS 而不是 JS 的 animate() ——
+   瀏覽器原生實作，而且能尊重「減少動態效果」的系統設定 */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
 @utility funevent-shadow {
   box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.3);
 }

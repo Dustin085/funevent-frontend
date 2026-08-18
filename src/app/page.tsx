@@ -1,5 +1,6 @@
 import { CategoryNav } from "@/features/events/components/CategoryNav";
 import { EventSection } from "@/features/events/components/EventSection";
+import { Decoration } from "@/features/home/components/Decoration";
 import { Hero } from "@/features/home/components/Hero";
 import type { HeroSlide } from "@/features/home/components/HeroCarousel";
 import { TopicSection } from "@/features/home/components/TopicSection";
@@ -51,24 +52,52 @@ export default async function Home() {
     <>
       <Hero slides={heroSlides} />
 
-      <main className="flex flex-1 flex-col gap-10 px-4 py-8 sm:px-8 lg:px-[76px] lg:py-10">
-        <CategoryNav categories={categories} />
+      {/* ⚠️ overflow-x-clip 不能寫成 overflow-x-hidden：
+          hidden 會把另一軸從 visible 變成 auto，等於做出一個捲動容器，
+          裝飾就再也不能垂直溢出到相鄰區塊了（而且會影響 sticky）。
+          clip 不會建立捲動容器，只是切掉 —— 正是我們要的 */}
+      <main className="flex flex-1 flex-col gap-10 overflow-x-clip px-4 py-8 sm:px-8 lg:px-[76px] lg:py-10">
+        {/* relative 當定位基準，isolate 把 -z-10 關在這一格裡 */}
+        <div className="relative isolate">
+          
+          <CategoryNav categories={categories} />
+        </div>
 
-        <EventSection
-          title="即將登場"
-          moreHref="/search"
-          events={upcoming.content}
-          emptyText="目前沒有即將開始的活動"
-        />
+        <div className="relative isolate">
+          <Decoration
+            src="/images/home-page-bg-color-block-small3.svg"
+            className="-bottom-[10vw] -left-[22.98vw] h-[42.15vw] w-[42.15vw]"
+          />
+          <EventSection
+            title="即將登場"
+            moreHref="/search"
+            events={upcoming.content}
+            emptyText="目前沒有即將開始的活動"
+          />
+        </div>
 
-        <TopicSection />
+        <div className="relative isolate">
+          <Decoration
+            src="/images/home-page-bg-color-block-small4.svg"
+            className="-top-[8vw] -right-[25.06vw] h-[40.4vw] w-[40.4vw]"
+          />
+          <TopicSection />
+        </div>
 
-        <EventSection
-          title="最新上架"
-          moreHref="/search"
-          events={newest.content}
-          emptyText="目前沒有新上架的活動"
-        />
+        <div className="relative isolate">
+          {/* 這一顆舊版沒有 SVG，本來就是純 CSS 圓 */}
+          <Decoration className="-bottom-[6vw] -left-[15.69vw] h-[19.51vw] w-[19.51vw] rounded-full bg-[rgba(255,227,187,0.5)]" />
+          <Decoration
+            src="/images/home-page-bg-color-block-small6.svg"
+            className="-right-[29.58vw] -bottom-[12vw] h-[31.25vw] w-[37.22vw]"
+          />
+          <EventSection
+            title="最新上架"
+            moreHref="/search"
+            events={newest.content}
+            emptyText="目前沒有新上架的活動"
+          />
+        </div>
       </main>
     </>
   );

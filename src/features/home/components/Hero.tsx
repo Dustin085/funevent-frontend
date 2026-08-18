@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { HeroCarousel } from "./HeroCarousel";
 import type { HeroSlide } from "./HeroCarousel";
+import { Decoration } from "@/features/home/components/Decoration";
 
 /**
  * 一場有封面圖的活動都沒有時的退路。
@@ -44,10 +45,20 @@ export function Hero({ slides }: { slides: HeroSlide[] }) {
         aria-hidden
         className="pointer-events-none absolute left-1/2 z-10 h-[83vw] w-[83vw] -translate-x-1/2 rounded-full bg-brand-teal lg:-top-[35.8vw] lg:-left-[25vw] lg:translate-x-0"
       />
-      {/* 橘色小圓 */}
+      {/* 橘色小圓(右) */}
       <div
         aria-hidden
         className="bg-[url('/images/event-bg-color-block2.svg')] pointer-events-none absolute bg-cover w-[54.2vw] h-[38.9vw] right-[-11.6vw] top-[70vw] lg:top-[7vw] rotate-6"
+      />
+      {/* 橘色迷你圓(左) */}
+      <Decoration
+        src="/images/home-page-bg-color-block-small1.svg"
+        className="top-[40vh] lg:top-[20vh] left-[10vw] lg:left-[-5.27vw] scale-200 lg:scale-100 h-[11.52vw] w-[13.75vw] z-20"
+      />
+      {/* 舊版 animeRotateSlow。尊重使用者的減少動態設定 */}
+      <Decoration
+        src="/images/home-page-bg-color-block-small2.svg"
+        className="top-[25vh] lg:top-[12vh] right-[30vw] lg:right-[45vw] h-[12.47vw] w-[12.47vw] animate-spin-slow motion-reduce:animate-none z-20"
       />
 
       {/* 左半：logo + slogan + 搜尋框。z-20 才會蓋在圓之上 */}

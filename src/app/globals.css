@@ -36,6 +36,10 @@
   --color-ink-muted: #8a8a8a; /* gray-8：地點等次要文字 */
   --color-surface: #f7f9f9; /* bg-pri：需要純色底的區塊 */
   --color-ink-brown: #6b5240; /* deep-2：分類卡片標題 */
+
+  /* 舊專案的 animeRotateSlow（24s linear infinite）。
+     spin 的 keyframes Tailwind 內建就有，這裡只換速度 */
+  --animate-spin-slow: spin 24s linear infinite;
 }
 
 body {

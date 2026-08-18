@@ -2,6 +2,7 @@ import { CategoryNav } from "@/features/events/components/CategoryNav";
 import { EventSection } from "@/features/events/components/EventSection";
 import { Hero } from "@/features/home/components/Hero";
 import type { HeroSlide } from "@/features/home/components/HeroCarousel";
+import { TopicSection } from "@/features/home/components/TopicSection";
 import { springGet } from "@/lib/spring";
 import type {
   CategoryResponse,
@@ -59,6 +60,8 @@ export default async function Home() {
           events={upcoming.content}
           emptyText="目前沒有即將開始的活動"
         />
+
+        <TopicSection />
 
         <EventSection
           title="最新上架"

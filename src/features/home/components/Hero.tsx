@@ -39,9 +39,15 @@ export function Hero({ slides }: { slides: HeroSlide[] }) {
           後者只要祖先有 transform 就會失效（transform 會建立堆疊脈絡，
           filter / opacity / mask / will-change 也會）。
           圓是純裝飾不吃事件，所以點擊會直接穿透到下面的輪播 */}
+      {/* 綠色大圓 */}
       <div
         aria-hidden
         className="pointer-events-none absolute left-1/2 z-10 h-[83vw] w-[83vw] -translate-x-1/2 rounded-full bg-brand-teal lg:-top-[35.8vw] lg:-left-[25vw] lg:translate-x-0"
+      />
+      {/* 橘色小圓 */}
+      <div
+        aria-hidden
+        className="bg-[url('/images/event-bg-color-block2.svg')] pointer-events-none absolute bg-cover w-[54.2vw] h-[38.9vw] right-[-11.6vw] top-[70vw] lg:top-[7vw] rotate-6"
       />
 
       {/* 左半：logo + slogan + 搜尋框。z-20 才會蓋在圓之上 */}

@@ -52,7 +52,7 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
   const current = slides[active];
 
   return (
-    <div className="relative aspect-[3/2] w-[115%] -translate-x-[15%]">
+    <div className="relative aspect-[3/2] w-[115%] -translate-x-[20%] translate-y-[2%]">
       {/* 圖片層。誰蓋誰由 Hero 那顆圓的 z-10 決定 —— 這裡不需要負 z-index。
           本元件的根 div 有 transform（-translate-x），會建立堆疊脈絡，
           裡面的負 z-index 根本退不出去 */}

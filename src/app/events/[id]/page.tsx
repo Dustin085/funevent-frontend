@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { EventImageCarousel } from "@/features/events/components/EventImageCarousel";
+import { EventComments } from "@/features/events/components/EventComments";
 import { EventInnerNav } from "@/features/events/components/EventInnerNav";
 // ⚠️ 常數要從中性模組拿，不能從上面那個 "use client" 檔案拿 ——
 // 那樣會拿到 client reference 代理，id 讀出來是 undefined
@@ -47,25 +48,6 @@ const PLACEHOLDER_NOTICE = `1. 請於活動開始前 15 分鐘抵達現場報到
 2. 活動如遇天候因素取消，將於前一日 18:00 前通知並全額退款。
 3. 為維護講師與其他學員權益，課程進行中請勿錄影。
 4. 報名完成後恕不轉讓，如需退票請於活動前 7 日提出。`;
-
-/** ⚠️ 評論系統整套都還沒做，見上方 PLACEHOLDER_RATING 的說明 */
-const PLACEHOLDER_COMMENTS = [
-  {
-    name: "陳小姐",
-    score: 5,
-    text: "老師很有耐心，第一次接觸也完全跟得上，會再來！",
-  },
-  {
-    name: "王先生",
-    score: 5,
-    text: "帶小孩一起參加，場地乾淨，器材也維護得很好。",
-  },
-  {
-    name: "林同學",
-    score: 4,
-    text: "內容紮實，唯一小可惜是時間有點趕，希望能加長。",
-  },
-];
 
 export default async function EventDetailPage({
   params,
@@ -233,7 +215,7 @@ export default async function EventDetailPage({
 
           {/* 這一區是真資料 —— 票種本來就撈進來了。
               右側的方案板是「拿來買」的，這裡是「拿來讀」的 */}
-          <DetailSection
+          {/* <DetailSection
             id={EVENT_SECTION_IDS.plans}
             title="選擇方案"
             className="mt-[25px]"
@@ -260,7 +242,7 @@ export default async function EventDetailPage({
                 </li>
               ))}
             </ul>
-          </DetailSection>
+          </DetailSection> */}
 
           {/* ⚠️ 假資料 */}
           <DetailSection
@@ -307,25 +289,7 @@ export default async function EventDetailPage({
             title="活動評論"
             className="mt-[25px]"
           >
-            <ul className="flex flex-col gap-4">
-              {PLACEHOLDER_COMMENTS.map((comment) => (
-                <li
-                  key={comment.name}
-                  className="border-b border-[#d9d9d9] pb-4 last:border-0 last:pb-0"
-                >
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium text-ink-soft">{comment.name}</p>
-                    <span className="text-[14px] text-brand-amber">
-                      {"★".repeat(comment.score)}
-                      <span className="text-ink-muted">
-                        {"★".repeat(5 - comment.score)}
-                      </span>
-                    </span>
-                  </div>
-                  <p className="mt-1 text-ink-muted">{comment.text}</p>
-                </li>
-              ))}
-            </ul>
+            <EventComments rating={PLACEHOLDER_RATING} />
           </DetailSection>
         </div>
 

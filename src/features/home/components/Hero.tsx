@@ -1,12 +1,18 @@
 import Image from "next/image";
 import { HeroCarousel } from "./HeroCarousel";
+import type { HeroSlide } from "./HeroCarousel";
 
-const HERO_IMAGES = [
-  "/images/hero/slide-1.jpg",
-  "/images/hero/slide-2.jpg",
-  "/images/hero/slide-3.jpg",
-  "/images/hero/slide-4.jpg",
-  "/images/hero/slide-5.jpg",
+/**
+ * 一場有封面圖的活動都沒有時的退路。
+ * hero 是首屏主視覺 —— 放品牌色漸層佔位會很像壞掉，寧可用行銷圖。
+ * 這些圖沒有可以去的地方，所以不帶 href（點擊維持「換下一張」）。
+ */
+const FALLBACK_SLIDES: HeroSlide[] = [
+  { imageUrl: "/images/hero/slide-1.jpg" },
+  { imageUrl: "/images/hero/slide-2.jpg" },
+  { imageUrl: "/images/hero/slide-3.jpg" },
+  { imageUrl: "/images/hero/slide-4.jpg" },
+  { imageUrl: "/images/hero/slide-5.jpg" },
 ];
 
 /**
@@ -21,7 +27,9 @@ const HERO_IMAGES = [
  *
  * 輪播是淡入淡出式的，不需要套件，見 HeroCarousel。
  */
-export function Hero() {
+export function Hero({ slides }: { slides: HeroSlide[] }) {
+  const heroSlides = slides.length > 0 ? slides : FALLBACK_SLIDES;
+
   return (
     // isolate：建立堆疊脈絡，把內部的 z-10 / z-20 關在這個區塊裡，
     // 不會跑到根層級去跟 Topbar 的 z-50 排隊。主動劃清界線，而不是靠數字剛好排對
@@ -76,7 +84,7 @@ export function Hero() {
           ⚠️ 這一層不能有負的 z-index：圖片層自己會沉到青色圓之下，
           但互動層必須留在正常層級，否則點不到 */}
       <div className="hidden lg:block lg:w-1/2">
-        <HeroCarousel images={HERO_IMAGES} />
+        <HeroCarousel slides={heroSlides} />
       </div>
     </section>
   );

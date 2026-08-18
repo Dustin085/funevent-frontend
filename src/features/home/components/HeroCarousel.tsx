@@ -1,9 +1,18 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useCarousel } from "@/lib/use-carousel";
 
 const AUTOPLAY_MS = 5000;
+
+export type HeroSlide = {
+  imageUrl: string;
+  /** 有值時整個不規則區域是連結；靜態行銷圖沒有 href，點了只會換下一張 */
+  href?: string;
+  /** 活動名稱，給 alt 與 aria-label */
+  label?: string;
+};
 
 /**
  * 舊專案 index.html 裡那個 SVG 的路徑，形狀跟遮罩一致。
@@ -34,12 +43,13 @@ const MASK_STYLE = {
  * 圓用正 z-index 蓋在這個元件之上，並加 pointer-events-none 讓事件穿透。
  * 這裡完全不需要負 z-index。
  */
-export function HeroCarousel({ images }: { images: string[] }) {
+export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
   // 行為跟活動詳情頁的輪播共用（見 useCarousel），外觀完全不同
   const { active, setActive, go, paused, setPaused } = useCarousel(
-    images.length,
+    slides.length,
     AUTOPLAY_MS,
   );
+  const current = slides[active];
 
   return (
     <div className="relative aspect-[3/2] w-[115%] -translate-x-[15%]">
@@ -47,11 +57,11 @@ export function HeroCarousel({ images }: { images: string[] }) {
           本元件的根 div 有 transform（-translate-x），會建立堆疊脈絡，
           裡面的負 z-index 根本退不出去 */}
       <div className="absolute inset-0" style={MASK_STYLE}>
-        {images.map((src, index) => (
+        {slides.map((slide, index) => (
           <Image
-            key={src}
-            src={src}
-            alt=""
+            key={slide.imageUrl}
+            src={slide.imageUrl}
+            alt={slide.label ?? ""}
             fill
             sizes="50vw"
             priority={index === 0}
@@ -68,28 +78,20 @@ export function HeroCarousel({ images }: { images: string[] }) {
         />
       </div>
 
-      {/* ⭐ 互動層。<svg> 本身沒有填色所以不接收事件，只有 <path> 會 ——
-          不規則形狀之外的長方形區域完全不受影響，這是舊版的做法。
-          opacity-0 不影響命中判定：pointer-events 看的是 visibility，不是 opacity。 */}
-      <svg viewBox="0 0 936 607" className="absolute inset-0 h-full w-full">
-        <path
-          d={BLOB_PATH}
-          fill="black"
-          className="cursor-pointer opacity-0"
-          onClick={() => go(1)}
-          // 滑鼠在上面時暫停：使用者可能正在看，不該被換掉
-          onMouseEnter={() => setPaused(true)}
-          onMouseLeave={() => setPaused(false)}
-        />
-      </svg>
+      <BlobHitArea
+        href={current?.href}
+        label={current?.label}
+        onActivate={() => go(1)}
+        onHoverChange={setPaused}
+      />
 
       {/* 控制列 */}
       <div className="absolute -bottom-[10%] left-1/2 flex -translate-x-1/2 items-center gap-[29px]">
         <ArrowButton label="上一張" onClick={() => go(-1)} />
         <div className="flex gap-[14px]">
-          {images.map((src, index) => (
+          {slides.map((slide, index) => (
             <button
-              key={src}
+              key={slide.imageUrl}
               type="button"
               aria-label={`第 ${index + 1} 張`}
               aria-current={index === active}
@@ -103,6 +105,61 @@ export function HeroCarousel({ images }: { images: string[] }) {
         <ArrowButton label="下一張" flipped onClick={() => go(1)} />
       </div>
     </div>
+  );
+}
+
+/**
+ * 不規則形狀的互動區。
+ *
+ * 有 href 時包一層真的 <Link>：中鍵開新分頁、Ctrl+點、右鍵複製網址都能用，
+ * 用 router.push() 就全部失去了，螢幕閱讀器也不會把它當連結。
+ *
+ * ⚠️ HTML 與 SVG 的命中判定規則不同：
+ * SVG 的 <path> 沒填色就不接收事件，但 <a> 就算完全透明，整個矩形照樣接收 ——
+ * 直接包起來的話不規則形狀就失效了。
+ * 所以 <a> 設 pointer-events-none、只讓 <path> 可命中；
+ * 規格明訂事件仍會從子元素冒泡經過 pointer-events:none 的祖先，
+ * 所以連結照樣會被觸發。
+ */
+function BlobHitArea({
+  href,
+  label,
+  onActivate,
+  onHoverChange,
+}: {
+  href?: string;
+  label?: string;
+  onActivate: () => void;
+  onHoverChange: (hovered: boolean) => void;
+}) {
+  const shape = (
+    <svg
+      viewBox="0 0 936 607"
+      className="pointer-events-none absolute inset-0 h-full w-full"
+    >
+      <path
+        d={BLOB_PATH}
+        fill="black"
+        className="pointer-events-auto cursor-pointer opacity-0"
+        // 滑鼠在上面時暫停：使用者可能正在看，不該被換掉
+        onMouseEnter={() => onHoverChange(true)}
+        onMouseLeave={() => onHoverChange(false)}
+        // 沒有連結時（退回靜態行銷圖）維持原本行為：點一下換下一張
+        onClick={href ? undefined : onActivate}
+      />
+    </svg>
+  );
+
+  if (!href) return shape;
+
+  return (
+    <Link
+      href={href}
+      aria-label={label ? `查看活動：${label}` : "查看活動"}
+      className="pointer-events-none absolute inset-0"
+    >
+      {shape}
+    </Link>
   );
 }
 

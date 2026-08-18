@@ -12,14 +12,14 @@ import Link from "next/link";
  */
 export function Footer() {
   return (
-    <footer className="relative mt-[58px] flex flex-col items-center overflow-hidden bg-ink-soft px-6 lg:px-[144px]">
+    <footer className="relative lg:funevent-arc-top lg:pt-[30px] flex flex-col items-center overflow-hidden bg-ink-soft px-6 lg:px-[144px]">
       {/* 弧形背景：145.8vw 寬的橢圓貼齊底部，露出來的上緣就是那道弧線。
           刻意不用負 z-index —— 它跟 footer 同色，靠 DOM 順序讓後面的內容蓋上去就好。
           需要 overflow-hidden，否則 145.8vw 會撐出水平捲軸 */}
-      <div
+      {/* <div
         aria-hidden
         className="absolute bottom-0 left-1/2 h-[325px] w-[145.8vw] -translate-x-1/2 bg-ink-soft [clip-path:ellipse()]"
-      />
+      /> */}
 
       <nav className="relative w-full max-w-[1034px] pt-12">
         <ul className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-4">

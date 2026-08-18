@@ -17,6 +17,19 @@ import { SectionTitle } from "@/components/SectionTitle";
 import { Decoration } from "@/components/Decoration";
 
 /**
+ * 這一頁必須在「每次請求」時渲染，不能在 build time 產生。
+ *
+ * ⚠️ 理由是下面的 Date.now()：票種的「尚未開賣 / 已停售」是拿它跟
+ * saleStartAt / saleEndAt 比出來的。若這頁被靜態化，那個時間戳會凍結在
+ * 打包的那一刻，上線幾天後還在用舊時間判斷 —— 而且畫面看起來完全正常。
+ *
+ * 目前就算不寫這行，實際上也是動態的（root layout 讀了 cookie，
+ * 讀 cookie 會讓整棵樹退出靜態渲染）。但那是「別的檔案的副作用」，
+ * 登入狀態改做法就會悄悄失效。這一行把它變成這一頁自己的明示條件。
+ */
+export const dynamic = "force-dynamic";
+
+/**
  * ⚠️ 評分與標籤都是寫死的裝飾資料，只為了確認版面 ——
  * 這兩個數字與文字不代表任何東西。
  *
@@ -76,6 +89,7 @@ export default async function EventDetailPage({
 
   // 可否購買在伺服器端算好再傳下去 —— 若在 Client Component 裡用 Date.now()，
   // 伺服器渲染與瀏覽器 hydration 的時間點不同，會產生 hydration mismatch
+  // eslint-disable-next-line react-hooks/purity
   const now = Date.now();
   const options: TicketTypeOption[] = ticketTypes.map((ticketType) => ({
     ...ticketType,

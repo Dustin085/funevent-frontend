@@ -6,6 +6,7 @@ import {
   REFRESH_TOKEN_MAX_AGE_SECONDS,
 } from "@/lib/cookie-config";
 import { cookies } from "next/headers";
+import type { NextResponse } from "next/server";
 
 /**
  * 把 JWT 寫進 httpOnly cookie。
@@ -22,6 +23,29 @@ export async function setTokenCookies(
     maxAge: ACCESS_TOKEN_MAX_AGE_SECONDS,
   });
   cookieStore.set(REFRESH_TOKEN_COOKIE, refreshToken, {
+    ...COOKIE_OPTIONS,
+    maxAge: REFRESH_TOKEN_MAX_AGE_SECONDS,
+  });
+}
+
+/**
+ * 把 JWT 寫進「指定的 response」。
+ *
+ * ⚠️ 和 setTokenCookies 的差別只在寫入方式：那個用 next/headers 的 cookies()，
+ * 這個直接寫在自己建的 NextResponse 上。OAuth callback 要回傳一個轉址回應，
+ * 兩種寫法混用時 cookie 會不會被合併進去是不確定的，所以那裡統一用後者。
+ * 選項來自同一份 cookie-config，不會分岔。
+ */
+export function setTokenCookiesOn(
+  response: NextResponse,
+  accessToken: string,
+  refreshToken: string,
+) {
+  response.cookies.set(ACCESS_TOKEN_COOKIE, accessToken, {
+    ...COOKIE_OPTIONS,
+    maxAge: ACCESS_TOKEN_MAX_AGE_SECONDS,
+  });
+  response.cookies.set(REFRESH_TOKEN_COOKIE, refreshToken, {
     ...COOKIE_OPTIONS,
     maxAge: REFRESH_TOKEN_MAX_AGE_SECONDS,
   });

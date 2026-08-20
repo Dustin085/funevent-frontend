@@ -78,7 +78,7 @@ export function ForgotPasswordForm() {
       <button
         type="submit"
         disabled={loading}
-        className="rounded bg-gray-900 px-4 py-2 text-white disabled:opacity-50"
+        className="rounded bg-brand hover:bg-brand-hover transition-colors px-4 py-2 text-white disabled:opacity-50"
       >
         {loading ? "處理中..." : "寄送重設密碼信"}
       </button>

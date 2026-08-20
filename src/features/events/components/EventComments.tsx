@@ -1,63 +1,50 @@
 import Image from "next/image";
+import { formatEventDateTime } from "@/lib/format-date";
+import type { CommentResponse } from "@/lib/api-types";
 import { CommentText } from "./CommentText";
 
 /**
- * ⚠️ 整區都是假資料。評論系統要能上線需要：
- * comments 表、「訂單完成才能評」的規則、avg + count 聚合（別做成 1+N）、
- * 一張訂單只能評一次的唯一約束、以及評論圖片的上傳與儲存。
+ * 活動評論區。
  *
- * 排序下拉與「觀看更多評論」也都還沒有對應的端點，故意做成停用狀態 ——
+ * ⚠️ 還沒做的：評論圖片（要先有物件儲存）、排序端點、分頁、
+ * 以及「寫評論」的表單。停用的控制項刻意保持 disabled ——
  * 能點但什麼都不會發生，比停用更糟。
  */
-const PLACEHOLDER_COMMENTS = [
-  {
-    name: "Lily Thompson",
-    avatarUrl: "/images/comments/avatar-1.png",
-    date: "2024.04.16",
-    score: 5,
-    text: "講師是我高中時期最愛樂團的吉他手，不來實在說不過去了呀！我選擇的方案是親子一同彈，在彈唱的過程中，我和孩子互相分享了自己喜歡的音樂，謝謝蘭響為我創造了獨一無二的親子回憶。整堂課節奏抓得很好，從調音到第一次完整彈完一首歌，兩個小時就過去了。",
-    pictureUrl: "/images/comments/pic-1.png",
-    morePictures: 2,
-  },
-  {
-    name: "Ethan Parker",
-    avatarUrl: "/images/comments/avatar-2.png",
-    date: "2024.01.10",
-    score: 4,
-    text: "參加這次的吉他課程真是太棒了！從一開始連基本的和弦都彈不出來，到現在能彈奏一些簡單的曲子，這段學習過程真的很有趣。老師非常耐心，一步步地教我如何正確按弦、彈奏，讓我逐漸克服了最初的困難。唯一小可惜是時間有點趕。",
-    pictureUrl: "/images/comments/pic-2.png",
-    morePictures: 2,
-  },
-  {
-    // 沒有附圖的評論 —— 版面必須撐得住這種情況
-    name: "林同學",
-    avatarUrl: null,
-    date: "2023.11.02",
-    score: 4,
-    text: "內容紮實，場地乾淨，器材也維護得很好。",
-    pictureUrl: null,
-    morePictures: 0,
-  },
-];
-
 export function EventComments({
-  rating,
+  average,
+  count,
+  comments,
 }: {
-  rating: { score: number; count: number };
+  /** ⚠️ null 代表「還沒有人評價」，不是 0 分 */
+  average: number | null;
+  count: number;
+  comments: CommentResponse[];
 }) {
+  // 還沒有人評價時，整個評分區塊沒有東西可顯示 —— 顯示 0.0 是憑空給差評
+  if (count === 0 || average === null) {
+    return (
+      <p className="py-10 text-center text-ink-muted">
+        還沒有人評價這個活動。參加過的人可以在活動開始後留下評論。
+      </p>
+    );
+  }
+
+  // 後端回的是原始平均（例如 4.333…），顯示到小數第一位
+  const score = Number(average.toFixed(1));
+
   return (
     <div className="flex flex-col gap-[18px]">
       {/* 總評分。舊版 .rating-box：flex-wrap + justify-evenly + align-end */}
       <div className="flex flex-wrap items-end justify-evenly gap-4">
         <div className="flex items-end leading-none">
-          <p className="text-[60px] font-semibold text-brand">{rating.score}</p>
+          <p className="text-[60px] font-semibold text-brand">{score}</p>
           <p className="text-[36px] font-semibold text-ink-muted">/5</p>
         </div>
 
-        <Stars score={rating.score} size={48} gap={13} />
+        <Stars score={score} size={48} gap={13} />
 
         <p className="text-[16px] font-medium whitespace-nowrap text-[#a8a8a8]">
-          共 {rating.count} 人評價
+          共 {count} 人評價
         </p>
       </div>
 
@@ -76,57 +63,33 @@ export function EventComments({
       </select>
 
       <ul className="flex flex-col gap-[35px]">
-        {PLACEHOLDER_COMMENTS.map((comment) => (
-          <li
-            key={comment.name}
-            className="flex items-start gap-4 sm:gap-[30px]"
-          >
-            {/* 沒有頭像時退回預設圖示，版面不會因此塌掉 */}
+        {comments.map((comment) => (
+          <li key={comment.id} className="flex items-start gap-4 sm:gap-[30px]">
+            {/* ⚠️ User 沒有頭像欄位，一律用預設圖示。
+                之後做頭像上傳時這裡換成 comment.avatarUrl ?? 預設 */}
             <Image
-              src={comment.avatarUrl ?? "/images/login-icon.svg"}
+              src="/images/login-icon.svg"
               alt=""
               width={86}
               height={86}
               aria-hidden
-              className={`h-14 w-14 shrink-0 rounded-full object-cover sm:h-[86px] sm:w-[86px] ${
-                comment.avatarUrl ? "" : "bg-brand-teal p-3"
-              }`}
+              className="h-14 w-14 shrink-0 rounded-full bg-brand-teal object-cover p-3 sm:h-[86px] sm:w-[86px]"
             />
 
-            {/* 手機上附圖排到文字下方；sm 以上才回到右側並靠下對齊
-                （舊版 align-self: flex-end） */}
-            <div className="flex min-w-0 flex-1 flex-col gap-4 sm:flex-row sm:items-end sm:gap-[22px]">
-              <div className="flex min-w-0 flex-1 flex-col gap-4">
-                <div className="flex items-end gap-[14px]">
-                  <p className="text-[20px] font-medium text-ink">
-                    {comment.name}
-                  </p>
-                  <p className="text-[14px] text-ink-muted">{comment.date}</p>
-                </div>
-
-                <Stars score={comment.score} size={24} gap={6} />
-
-                <CommentText text={comment.text} />
+            <div className="flex min-w-0 flex-1 flex-col gap-4">
+              <div className="flex items-end gap-[14px]">
+                <p className="text-[20px] font-medium text-ink">
+                  {comment.userName}
+                </p>
+                <p className="text-[14px] text-ink-muted">
+                  {formatEventDateTime(comment.createdAt)}
+                </p>
               </div>
 
-              {comment.pictureUrl && (
-                <div className="relative h-[104px] w-[149px] shrink-0">
-                  <Image
-                    src={comment.pictureUrl}
-                    alt=""
-                    fill
-                    sizes="149px"
-                    aria-hidden
-                    className="rounded-[5px] object-cover"
-                  />
-                  {comment.morePictures > 0 && (
-                    // ⚠️ 純裝飾：燈箱還沒做，所以不是 <button>
-                    <span className="absolute right-0 bottom-0 rounded-[5px_5px_10px_5px] bg-black px-2 py-0.5 text-[14px] text-white">
-                      +{comment.morePictures}
-                    </span>
-                  )}
-                </div>
-              )}
+              <Stars score={comment.rating} size={24} gap={6} />
+
+              {/* 內容可為 null —— 只給星等不寫字是合理的評價方式 */}
+              {comment.content && <CommentText text={comment.content} />}
             </div>
           </li>
         ))}

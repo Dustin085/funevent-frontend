@@ -12,20 +12,24 @@ import Image from "next/image";
  */
 export function SearchBox({
   defaultValue = "",
-  preserve = {},
+  preserve = [],
   className = "",
   inputClassName = "",
 }: {
   defaultValue?: string;
-  /** 要一起帶走的其他篩選條件（category / city） */
-  preserve?: Record<string, string>;
+  /**
+   * 要一起帶走的其他篩選條件。
+   * ⚠️ 用 [name, value] 的陣列而不是物件 —— 篩選是多選的，
+   * 同一個 name 會出現好幾次（category=A、category=B），物件表達不了
+   */
+  preserve?: readonly (readonly [string, string])[];
   className?: string;
   inputClassName?: string;
 }) {
   return (
     <form action="/search" className={`relative ${className}`}>
-      {Object.entries(preserve).map(([name, value]) => (
-        <input key={name} type="hidden" name={name} value={value} />
+      {preserve.map(([name, value]) => (
+        <input key={`${name}=${value}`} type="hidden" name={name} value={value} />
       ))}
       <input
         type="search"

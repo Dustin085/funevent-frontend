@@ -13,7 +13,12 @@ import { TicketTypePicker } from "@/features/events/components/TicketTypePicker"
 import type { TicketTypeOption } from "@/features/events/components/TicketTypePicker";
 import { formatEventDateTime } from "@/lib/format-date";
 import { SpringApiError, springGet } from "@/lib/spring";
-import type { EventResponse, TicketTypeResponse } from "@/lib/api-types";
+import type {
+  CommentResponse,
+  EventResponse,
+  PagedModel,
+  TicketTypeResponse,
+} from "@/lib/api-types";
 import { SectionTitle } from "@/components/SectionTitle";
 import { Decoration } from "@/components/Decoration";
 
@@ -31,16 +36,14 @@ import { Decoration } from "@/components/Decoration";
 export const dynamic = "force-dynamic";
 
 /**
- * ⚠️ 評分與標籤都是寫死的裝飾資料，只為了確認版面 ——
- * 這兩個數字與文字不代表任何東西。
- *
- * 要變成真的分別需要：
- * - 評分：一整套評論系統（comments 表、訂單完成才能評、avg + count 聚合且不能做成 1+N、
- *   一張訂單只能評一次的約束）
- * - 標籤：events 與 tags 的多對多，以及主辦者建立活動時的標籤輸入介面
+ * ⚠️ 標籤仍是寫死的裝飾資料，只為了確認版面。
+ * 要變成真的需要 events 與 tags 的多對多，以及主辦者建立活動時的標籤輸入介面。
+ *（評分與評論已經接上真資料了。）
  */
-const PLACEHOLDER_RATING = { score: 4.9, count: 115 };
 const PLACEHOLDER_TAGS = ["新手友善", "親子同樂", "室內活動"];
+
+/** 詳情頁只顯示第一頁評論。「觀看更多」要等分頁 UI 做出來 */
+const COMMENT_PAGE_SIZE = 10;
 
 /** ⚠️ 後端沒有「注意事項」欄位。之後要嘛在 events 加一個 notice 欄位，
     要嘛併進已決定要做的 event_sections 表（多段式活動介紹） */
@@ -56,12 +59,16 @@ export default async function EventDetailPage({
 
   let event: EventResponse;
   let ticketTypes: TicketTypeResponse[];
+  let comments: PagedModel<CommentResponse>;
   try {
-    // 兩個請求互不相依，平行送出。後端本來就是兩個端點：
-    // 活動詳情是公開資料，票種是活動的子資源
-    [event, ticketTypes] = await Promise.all([
+    // 三個請求互不相依，平行送出。後端本來就是三個端點：
+    // 活動詳情是公開資料，票種與評論是活動的子資源
+    [event, ticketTypes, comments] = await Promise.all([
       springGet<EventResponse>(`/api/events/${id}`),
       springGet<TicketTypeResponse[]>(`/api/events/${id}/ticket-types`),
+      springGet<PagedModel<CommentResponse>>(
+        `/api/events/${id}/comments?size=${COMMENT_PAGE_SIZE}`,
+      ),
     ]);
   } catch (error) {
     // 後端對「未發布」的活動也回 404（不洩漏存在性），這裡直接轉成 Next 的 404 頁
@@ -124,7 +131,8 @@ export default async function EventDetailPage({
             {event.name}
           </h1>
 
-          {/* ⚠️ 裝飾用的假評分，見檔案頂端的說明 */}
+          {/* 評分。⚠️ ratingAverage 為 null 代表「還沒有人評價」，
+              不能顯示成 0.0 —— 那等於憑空給了一個最差評價 */}
           <div className="mb-5 flex items-center gap-[5px]">
             <Image
               src="/images/rating-icon--filled.svg"
@@ -133,12 +141,14 @@ export default async function EventDetailPage({
               height={20}
               aria-hidden
             />
-            <p className="text-[20px] text-ink">
-              {PLACEHOLDER_RATING.score}
-              <span className="text-ink-muted">
-                （{PLACEHOLDER_RATING.count}）
-              </span>
-            </p>
+            {event.ratingAverage === null ? (
+              <p className="text-[20px] text-ink-muted">尚無評價</p>
+            ) : (
+              <p className="text-[20px] text-ink">
+                {event.ratingAverage.toFixed(1)}
+                <span className="text-ink-muted">（{event.ratingCount}）</span>
+              </p>
+            )}
           </div>
 
           <dl className="grid grid-cols-[auto_1fr] gap-x-[10px] gap-y-5">
@@ -258,7 +268,11 @@ export default async function EventDetailPage({
             title="活動評論"
             className="mt-[25px]"
           >
-            <EventComments rating={PLACEHOLDER_RATING} />
+            <EventComments
+              average={event.ratingAverage}
+              count={event.ratingCount}
+              comments={comments.content}
+            />
           </DetailSection>
         </div>
 

@@ -84,6 +84,15 @@ export interface CityResponse {
   name: string;
 }
 
+/** 對應後端 CommentResponse */
+export interface CommentResponse {
+  id: number;
+  userName: string;
+  rating: number;
+  content: string | null;
+  createdAt: string;
+}
+
 export type OrderStatus = "PENDING" | "PAID" | "CANCELLED" | "REFUNDED";
 
 export interface OrganizerResponse {
@@ -110,6 +119,12 @@ export interface EventResponse {
   imageUrls: string[];
   status: EventStatus;
   createdAt: string;
+  /**
+   * ⚠️ 沒有任何評論時是 null 而不是 0 ——
+   * 「沒人評過」和「大家都給 0 分」是兩件事，不能顯示成「0.0 分」
+   */
+  ratingAverage: number | null;
+  ratingCount: number;
 }
 
 export interface TicketTypeResponse {

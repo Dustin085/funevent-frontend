@@ -1,116 +1,119 @@
-import Link from "next/link";
 import type { CategoryResponse, CityResponse } from "@/lib/api-types";
 
 /**
- * 從舊專案的 SearchFilterBoard 移植。
+ * 從舊專案的 SearchFilterBoard 移植 —— 和舊版一樣是多選 checkbox。
  *
- * 舊版是多選 checkbox；分類這裡改成單選連結 —— 後端的 ?category= 只收一個值。
- * 要支援多選得先讓後端收陣列參數。
+ * ⭐ 整塊是一個原生的 GET 表單，勾選後按「套用」送出，不需要 JavaScript。
+ * 瀏覽器會把同名的 checkbox 變成重複的參數（?category=A&category=B），
+ * Spring 那邊直接綁成 List。
  *
- * ⚠️ 三種篩選要互相帶著走：點分類時要保留關鍵字與地區、
- * 選地區時要保留關鍵字與分類。少帶一個，使用者的篩選就會莫名消失。
+ * ⚠️ 分類與地區必須在**同一個** form 裡共用一個送出鈕。
+ * 拆成兩個表單的話，套用地區時分類的勾選會整個消失 ——
+ * GET 表單只會送出「自己表單裡」的欄位。
  */
 export function SearchFilterBoard({
   categories,
   cities,
-  activeCategory,
-  activeCity,
+  activeCategories,
+  activeCities,
   keyword,
 }: {
   categories: CategoryResponse[];
   cities: CityResponse[];
-  activeCategory: string | null;
-  activeCity: string | null;
+  activeCategories: string[];
+  activeCities: string[];
   keyword: string;
 }) {
-  const categoryHref = (code: string | null) => {
-    const params = new URLSearchParams();
-    if (keyword) params.set("q", keyword);
-    if (code) params.set("category", code);
-    if (activeCity) params.set("city", activeCity);
-    const query = params.toString();
-    return query ? `/search?${query}` : "/search";
-  };
-
   return (
-    <aside className="flex w-full flex-col gap-[18px] rounded-[10px] bg-white px-[18px] pt-5 pb-[18px] funevent-shadow lg:w-[304px] lg:shrink-0">
-      <h2 className="text-[20px] font-medium text-ink-soft">活動分類</h2>
-      <ul className="flex flex-wrap gap-x-4 gap-y-2 lg:flex-col lg:gap-y-3">
-        <li>
-          <FilterLink href={categoryHref(null)} active={activeCategory === null}>
-            全部
-          </FilterLink>
-        </li>
-        {categories.map((category) => (
-          <li key={category.code}>
-            <FilterLink
-              href={categoryHref(category.code)}
-              active={category.code === activeCategory}
-            >
-              {category.name}
-            </FilterLink>
-          </li>
-        ))}
-      </ul>
-
-      <div className="h-px w-full bg-[#d9d9d9]" />
-
-      {/* ⚠️ 22 個縣市排成連結會是一整面牆，改用下拉。
-          一樣是原生 GET 表單，不需要 JavaScript；
-          q 與 category 用 hidden 欄位帶著走，否則選地區會把它們清掉 */}
-      <form action="/search" className="flex flex-col gap-3">
+    <aside className="w-full lg:w-[304px] lg:shrink-0">
+      <form
+        action="/search"
+        className="flex flex-col gap-[18px] rounded-[10px] bg-white px-[18px] pt-5 pb-[18px] funevent-shadow"
+      >
+        {/* 關鍵字不在這個表單的可見欄位裡，要用 hidden 帶著走 */}
         {keyword && <input type="hidden" name="q" value={keyword} />}
-        {activeCategory && (
-          <input type="hidden" name="category" value={activeCategory} />
-        )}
-        <label
-          htmlFor="city-filter"
-          className="text-[20px] font-medium text-ink-soft"
-        >
-          活動地區
-        </label>
-        <select
-          id="city-filter"
-          name="city"
-          defaultValue={activeCity ?? ""}
-          className="h-[42px] rounded-[10px] border border-[#d9d9d9] px-3 text-[16px] text-ink-soft"
-        >
-          <option value="">不限地區</option>
-          {cities.map((city) => (
-            <option key={city.code} value={city.code}>
-              {city.name}
-            </option>
-          ))}
-        </select>
-        <button
-          type="submit"
-          className="h-[38px] rounded-[10px] bg-brand-teal text-[16px] text-white transition-colors duration-[350ms] hover:bg-brand-teal-hover"
-        >
-          套用
-        </button>
+
+        <fieldset>
+          <legend className="text-[20px] font-medium text-ink-soft mb-3">
+            活動分類
+          </legend>
+          <ul className="flex flex-wrap gap-x-4 gap-y-2 lg:flex-col lg:gap-y-2">
+            {categories.map((category) => (
+              <li key={category.code}>
+                <FilterCheckbox
+                  name="category"
+                  value={category.code}
+                  label={category.name}
+                  defaultChecked={activeCategories.includes(category.code)}
+                />
+              </li>
+            ))}
+          </ul>
+        </fieldset>
+
+        <div className="h-px w-full bg-[#d9d9d9]" />
+
+        <fieldset>
+          <legend className="text-[20px] font-medium text-ink-soft mb-3">
+            活動地區
+          </legend>
+          {/* ⚠️ 22 個縣市會很長，限制高度讓它自己捲，不要把整個側欄撐爛 */}
+          <ul className="flex max-h-[240px] flex-wrap gap-x-4 gap-y-2 overflow-y-auto lg:flex-col lg:gap-y-2">
+            {cities.map((city) => (
+              <li key={city.code}>
+                <FilterCheckbox
+                  name="city"
+                  value={city.code}
+                  label={city.name}
+                  defaultChecked={activeCities.includes(city.code)}
+                />
+              </li>
+            ))}
+          </ul>
+        </fieldset>
+
+        <div className="flex gap-2">
+          <button
+            type="submit"
+            className="h-[38px] flex-1 rounded-[10px] bg-brand-teal text-[16px] text-white transition-colors duration-[350ms] hover:bg-brand-teal-hover"
+          >
+            套用篩選
+          </button>
+          {/* 清除是一個普通連結，不是 reset ——
+              reset 只會把勾選還原成畫面載入時的狀態，不會真的重新查詢 */}
+          <a
+            href={keyword ? `/search?q=${encodeURIComponent(keyword)}` : "/search"}
+            className="flex h-[38px] items-center rounded-[10px] border border-[#d9d9d9] px-4 text-[16px] text-ink-muted transition-colors duration-[350ms] hover:text-ink-soft"
+          >
+            清除
+          </a>
+        </div>
       </form>
     </aside>
   );
 }
 
-function FilterLink({
-  href,
-  active,
-  children,
+function FilterCheckbox({
+  name,
+  value,
+  label,
+  defaultChecked,
 }: {
-  href: string;
-  active: boolean;
-  children: React.ReactNode;
+  name: string;
+  value: string;
+  label: string;
+  defaultChecked: boolean;
 }) {
   return (
-    <Link
-      href={href}
-      aria-current={active ? "page" : undefined}
-      className={`text-[16px] transition-colors duration-[350ms] hover:text-brand ${
-        active ? "font-bold text-brand" : "text-ink-soft"
-      }`}
-    >
-      {children}
-    </Link>
+    <label className="flex cursor-pointer items-center gap-2 text-[16px] text-ink-soft transition-colors duration-[350ms] hover:text-brand">
+      <input
+        type="checkbox"
+        name={name}
+        value={value}
+        defaultChecked={defaultChecked}
+        className="h-4 w-4 shrink-0 accent-brand"
+      />
+      {label}
+    </label>
   );
 }

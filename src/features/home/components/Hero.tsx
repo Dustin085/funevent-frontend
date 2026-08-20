@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { SearchBox } from "@/components/SearchBox";
 import { HeroCarousel } from "./HeroCarousel";
 import type { HeroSlide } from "./HeroCarousel";
 import { Decoration } from "@/components/Decoration";
@@ -75,26 +76,11 @@ export function Hero({ slides }: { slides: HeroSlide[] }) {
           探索，一切可能
         </h2>
 
-        {/* ⚠️ TODO：目前不能送出。後端還沒有關鍵字搜尋（?q=），
-            而 /search 已經存在了 —— 要讓它能用，後端得加 q 參數，
-            那時 category × keyword 會讓衍生查詢變成 4 種組合，
-            該換成 Specification。 */}
-        <div className="relative w-full max-w-[490px]">
-          <input
-            type="text"
-            placeholder="推薦活動名字"
-            aria-label="搜尋活動（尚未開放）"
-            className="h-[54px] w-full rounded-full border-2 border-brand-amber bg-white px-6 pr-14 text-[18px] text-ink-title transition-transform duration-[350ms] outline-none hover:scale-105 hover:border-brand-hover sm:h-[62px] sm:text-[24px]"
-          />
-          <Image
-            src="/images/search-icon-gray.svg"
-            alt=""
-            width={28}
-            height={28}
-            aria-hidden
-            className="pointer-events-none absolute top-1/2 right-[14px] -translate-y-1/2"
-          />
-        </div>
+        {/* 送到 /search?q=… —— 原生 GET 表單，不需要 JavaScript */}
+        <SearchBox
+          className="w-full max-w-[490px]"
+          inputClassName="h-[54px] w-full rounded-full border-2 border-brand-amber bg-white px-6 pr-14 text-[18px] text-ink-title transition-transform duration-[350ms] outline-none hover:scale-105 hover:border-brand-hover sm:h-[62px] sm:text-[24px]"
+        />
       </div>
 
       {/* 右半：主視覺輪播。手機上藏起來 —— 它會佔掉半個螢幕又擠壓左側內容。

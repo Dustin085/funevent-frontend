@@ -74,6 +74,16 @@ export interface CategoryResponse {
   code: string;
   name: string;
 }
+/**
+ * 對應後端 CityResponse。
+ * ⚠️ code 是 enum 常數名（NEW_TAIPEI），那才是 ?city= 要用的值 ——
+ * EventSummaryResponse.city 送的是簡稱（「新北」），是給人看的，不能拿去查詢
+ */
+export interface CityResponse {
+  code: string;
+  name: string;
+}
+
 export type OrderStatus = "PENDING" | "PAID" | "CANCELLED" | "REFUNDED";
 
 export interface OrganizerResponse {

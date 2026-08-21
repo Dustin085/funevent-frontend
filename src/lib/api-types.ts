@@ -93,6 +93,24 @@ export interface CommentResponse {
   createdAt: string;
 }
 
+export type EventStatusCode = "DRAFT" | "PUBLISHED" | "CANCELLED";
+
+/**
+ * 對應後端 OrganizerEventSummaryResponse（主辦者後台列表用）。
+ * ⚠️ 和 EventSummaryResponse 的差別：有 status（後台最需要的），
+ * 沒有 organizerId / organizerName（看自己的活動不需要）
+ */
+export interface OrganizerEventSummaryResponse {
+  id: number;
+  name: string;
+  status: EventStatusCode;
+  startAt: string;
+  endAt: string;
+  categoryName: string;
+  coverImageUrl: string | null;
+  createdAt: string;
+}
+
 export type OrderStatus = "PENDING" | "PAID" | "CANCELLED" | "REFUNDED";
 
 export interface OrganizerResponse {
@@ -103,6 +121,8 @@ export interface OrganizerResponse {
 
 /** 對應後端 EventResponse（詳情用，含 description 與巢狀 organizer） */
 export interface EventResponse {
+  /** ⚠️ 常數名（NEW_TAIPEI）。編輯表單要用它把 select 設回原值 —— city 是顯示用簡稱 */
+  cityCode: string;
   id: number;
   organizer: OrganizerResponse;
   name: string;

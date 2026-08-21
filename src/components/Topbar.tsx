@@ -105,10 +105,13 @@ export function Topbar({ user }: { user: UserResponse | null }) {
           </li>
 
           <li>
-            <button type="button" className={menuBtnClass}>
+            {/* 主辦者後台。⚠️ 從 <button> 換成 <Link> ——
+                原本點了什麼都不會發生。未登入或還不是主辦者時，
+                那一頁自己會導向登入或顯示建立身分的引導 */}
+            <Link href="/organizer/events" className={menuBtnClass}>
               <MenuIcon src="/images/ticket-icon.svg" />
               <span className={menuLabelClass}>辦活動</span>
-            </button>
+            </Link>
           </li>
 
           {user && (

@@ -11,7 +11,6 @@ import type {
   EventOrderItemResponse,
   EventSalesSummary,
   OrderStatus,
-  OrganizerEventSummaryResponse,
   PagedModel,
 } from "@/lib/api-types";
 
@@ -53,21 +52,14 @@ export default async function EventOrdersPage({
 
   let orders: PagedModel<EventOrderItemResponse>;
   let summary: EventSalesSummary;
-  let event: PagedModel<OrganizerEventSummaryResponse>;
   try {
-    [orders, summary, event] = await Promise.all([
+    [orders, summary] = await Promise.all([
       springGet<PagedModel<EventOrderItemResponse>>(
         `/api/organizers/me/events/${id}/orders?${query}`,
         { auth: true },
       ),
       springGet<EventSalesSummary>(
         `/api/organizers/me/events/${id}/sales-summary`,
-        { auth: true },
-      ),
-      // 只為了拿活動名稱放在標題上。⚠️ 後端沒有「只取名稱」的端點，
-      // 用列表端點篩自己的活動比呼叫完整詳情（含票種）輕
-      springGet<PagedModel<OrganizerEventSummaryResponse>>(
-        `/api/organizers/me/events?size=100`,
         { auth: true },
       ),
     ]);
@@ -81,9 +73,6 @@ export default async function EventOrdersPage({
     }
     throw error;
   }
-
-  const eventName =
-    event.content.find((e) => String(e.id) === id)?.name ?? "活動";
 
   const tabHref = (code: OrderStatus | null) =>
     code
@@ -100,7 +89,7 @@ export default async function EventOrdersPage({
           ← 回到活動
         </Link>
         <h1 className="mt-2 text-[24px] font-medium text-ink-soft sm:text-[28px]">
-          {eventName}・訂單
+          {summary.eventName}・訂單
         </h1>
       </div>
 

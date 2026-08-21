@@ -68,9 +68,16 @@ export default async function MyOrdersPage({
                   {formatEventDateTime(order.createdAt)}
                 </p>
 
-                {/* 明細摘要。後端靠 Order.orderItems 上的 @BatchSize 一次撈齊，
-                    所以這裡列出 items 不會造成 1+N */}
-                <p className="truncate text-[16px] text-ink-soft">
+                {/* ⚠️ 一筆訂單可以跨活動下單，所以要去重後全部列出 ——
+                    只顯示第一個活動名稱會讓使用者以為訂單只有那一場 */}
+                <p className="truncate text-[16px] font-medium text-ink-soft">
+                  {[...new Set(order.items.map((item) => item.eventName))].join(
+                    "、",
+                  )}
+                </p>
+
+                {/* 明細摘要。活動名稱與票種都靠 @BatchSize 批次載入，不會造成 1+N */}
+                <p className="truncate text-[15px] text-ink-muted">
                   {order.items
                     .map((item) => `${item.ticketTypeName} × ${item.quantity}`)
                     .join("、")}

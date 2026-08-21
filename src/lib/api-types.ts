@@ -161,6 +161,10 @@ export interface TicketTypeResponse {
 
 export interface OrderItemResponse {
   id: number;
+  /** 用來組連結回活動頁 */
+  eventId: number;
+  /** ⚠️ 是「目前的」名稱不是快照 —— 訂單頁會連到活動頁，兩邊名字不同會讓人困惑 */
+  eventName: string;
   ticketTypeId: number;
   /** 下單當下的快照，票種日後改名不影響這裡 */
   ticketTypeName: string;
@@ -206,6 +210,7 @@ export interface EventOrderItemResponse {
 
 /** 對應後端 EventSalesSummary */
 export interface EventSalesSummary {
+  eventName: string;
   paidQuantity: number;
   paidAmount: number;
   /** ⚠️ 庫存正被佔用但錢還沒進來。逾時後會自動取消並回補 */

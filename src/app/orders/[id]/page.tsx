@@ -43,11 +43,20 @@ export default async function OrderDetailPage({
         <ul className="flex flex-col gap-3">
           {order.items.map((item) => (
             <li key={item.id} className="flex items-center justify-between">
-              <div>
-                <p className="text-[18px] text-ink-soft">
+              <div className="min-w-0">
+                {/* 活動名稱可點 —— 使用者看訂單時常常是想回去確認時間地點。
+                    ⚠️ 主辦者若取消了活動，這個連結會 404；
+                    但取消的前提是「沒有人付款」，所以機率很低 */}
+                <Link
+                  href={`/events/${item.eventId}`}
+                  className="text-[18px] font-medium text-ink-soft transition-colors duration-[350ms] hover:text-brand"
+                >
+                  {item.eventName}
+                </Link>
+                <p className="text-[16px] text-ink-soft">
                   {item.ticketTypeName}
                 </p>
-                <p className="text-[16px] text-ink-muted">
+                <p className="text-[15px] text-ink-muted">
                   NT$ {item.unitPrice.toLocaleString("zh-TW")} × {item.quantity}
                 </p>
               </div>

@@ -186,3 +186,28 @@ export interface PaymentInitiationResponse {
   /** 要以隱藏欄位送過去的參數。假金流閘道會是空物件 */
   formFields: Record<string, string>;
 }
+
+/**
+ * 對應後端 EventOrderItemResponse（主辦者視角的一筆銷售明細）。
+ * ⚠️ 範圍是「這個活動」而不是整筆訂單 —— 訂單可以跨活動，
+ * subtotal 是這一行的金額，不是訂單總額
+ */
+export interface EventOrderItemResponse {
+  orderId: number;
+  orderItemId: number;
+  buyerName: string;
+  ticketTypeName: string;
+  unitPrice: number;
+  quantity: number;
+  subtotal: number;
+  orderStatus: OrderStatus;
+  orderedAt: string;
+}
+
+/** 對應後端 EventSalesSummary */
+export interface EventSalesSummary {
+  paidQuantity: number;
+  paidAmount: number;
+  /** ⚠️ 庫存正被佔用但錢還沒進來。逾時後會自動取消並回補 */
+  pendingQuantity: number;
+}

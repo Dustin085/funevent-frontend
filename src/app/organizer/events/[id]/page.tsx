@@ -53,12 +53,20 @@ export default async function EditEventPage({
   return (
     <main className="mx-auto flex w-full max-w-[860px] flex-col gap-6 px-4 py-8 sm:px-8">
       <div>
-        <Link
-          href="/organizer/events"
-          className="text-[14px] text-ink-muted transition-colors duration-[350ms] hover:text-brand"
-        >
-          ← 回到我的活動
-        </Link>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Link
+            href="/organizer/events"
+            className="text-[14px] text-ink-muted transition-colors duration-[350ms] hover:text-brand"
+          >
+            ← 回到我的活動
+          </Link>
+          <Link
+            href={`/organizer/events/${id}/orders`}
+            className="text-[14px] text-brand-teal transition-colors duration-[350ms] hover:text-brand-teal-hover"
+          >
+            查看訂單與銷售 →
+          </Link>
+        </div>
 
         <div className="mt-2 flex flex-wrap items-start justify-between gap-4">
           <div className="flex flex-wrap items-center gap-3">

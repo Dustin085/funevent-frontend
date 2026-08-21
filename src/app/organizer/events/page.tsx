@@ -137,6 +137,12 @@ export default async function MyEventsPage({
 
               <div className="flex shrink-0 gap-2">
                 <Link
+                  href={`/organizer/events/${event.id}/orders`}
+                  className="flex h-[38px] items-center rounded-[10px] border border-[#d9d9d9] px-4 text-[15px] text-ink-soft transition-colors duration-[350ms] hover:text-brand"
+                >
+                  訂單
+                </Link>
+                <Link
                   href={`/organizer/events/${event.id}`}
                   className="flex h-[38px] items-center rounded-[10px] border border-[#d9d9d9] px-4 text-[15px] text-ink-soft transition-colors duration-[350ms] hover:text-brand"
                 >

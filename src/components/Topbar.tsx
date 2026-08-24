@@ -81,7 +81,7 @@ export function Topbar({ user }: { user: UserResponse | null }) {
           <li>
             <button type="button" className={menuBtnClass}>
               <MenuIcon src="/images/search-icon.svg" />
-              <span className={menuLabelClass}>找活動</span>
+              <Link href="/search" className={menuLabelClass}>找活動</Link>
             </button>
           </li>
 

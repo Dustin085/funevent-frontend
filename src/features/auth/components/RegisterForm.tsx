@@ -142,7 +142,7 @@ function Field({
         required
         autoComplete={autoComplete}
         aria-invalid={hasError}
-        className={`rounded border px-3 py-2 outline-none focus:border-brand ${
+        className={`rounded border bg-surface px-3 py-2 outline-none focus:border-brand ${
           hasError ? "border-red-500" : "border-gray-300"
         }`}
       />

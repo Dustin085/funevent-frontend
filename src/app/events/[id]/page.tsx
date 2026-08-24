@@ -66,6 +66,22 @@ const getEvent = cache((id: string) =>
 );
 
 /**
+ * 只在「使用者已登入且活動已開始」時才會被呼叫（見下方 commentFormState）——
+ * 沒登入的人不用查，反正結果一定是 login-required。
+ *
+ * 404 代表沒評論過，是正常分岔不是錯誤，所以在這裡吃掉；其他狀態碼往外拋。
+ */
+async function hasUserCommented(eventId: string): Promise<boolean> {
+  try {
+    await springGet(`/api/events/${eventId}/comments/me`, { auth: true });
+    return true;
+  } catch (error) {
+    if (error instanceof SpringApiError && error.status === 404) return false;
+    throw error;
+  }
+}
+
+/**
  * TEXT 欄位有換行與空行，meta description 要壓成一行並截短。
  * ⚠️ 搜尋引擎大約只顯示 150–160 字元，過長會被截在句子中間。
  */
@@ -135,17 +151,21 @@ export default async function EventDetailPage({
   }));
 
   // 評論表單要顯示什麼。
-  // ⚠️ 只用前端本來就知道的事實分岔：活動有沒有開始（時間）、有沒有登入（cookie）。
-  // 「有沒有買票」「是不是評過了」是後端的規則，前端不複製 ——
-  // 送出後由 403 / 409 回答，訊息直接顯示出來。
+  // ⚠️ 「有沒有買票」是後端的規則，前端不複製 —— 送出後由 403 回答，
+  // 訊息直接顯示出來。「是不是評過了」則反過來：這個查詢本來就要登入，
+  // 不查白不查，查了就能避免使用者填完表單才在送出時被 409 打回票。
   // getCurrentUser 有 cache()，layout 已經呼叫過，這裡不會再打一次後端
   const user = await getCurrentUser();
-  const commentFormState: CommentFormState =
-    Date.parse(event.startAt) > now
-      ? "not-started"
-      : user
-        ? "form"
-        : "login-required";
+  const eventStarted = Date.parse(event.startAt) <= now;
+
+  let commentFormState: CommentFormState;
+  if (!eventStarted) {
+    commentFormState = "not-started";
+  } else if (!user) {
+    commentFormState = "login-required";
+  } else {
+    commentFormState = (await hasUserCommented(id)) ? "already-commented" : "form";
+  }
   // 登入後帶回評論區，而不是回到頁面頂端
   const commentLoginHref = `/login?next=${encodeURIComponent(
     `/events/${event.id}#${EVENT_SECTION_IDS.comments}`,

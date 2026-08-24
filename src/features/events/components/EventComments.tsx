@@ -8,11 +8,15 @@ import Link from "next/link";
 /**
  * 評論表單要顯示什麼。
  *
- * ⚠️ 只用「前端本來就知道的事實」分岔：活動有沒有開始（時間）、
- * 有沒有登入（cookie）。「有沒有買票」「是不是評過了」是後端的規則，
- * 前端不複製 —— 送出後由 403 / 409 回答。
+ * ⚠️ 「有沒有買票」是後端的規則，前端不複製 —— 送出後由 403 回答。
+ * 「是不是評過了」則是額外查了 GET .../comments/me 才知道的（見 page.tsx
+ * 的 hasUserCommented），不是複製規則，是避免使用者填完表單才被 409 打回票。
  */
-export type CommentFormState = "form" | "not-started" | "login-required";
+export type CommentFormState =
+  | "form"
+  | "not-started"
+  | "login-required"
+  | "already-commented";
 
 /**
  * 活動評論區。
@@ -91,6 +95,13 @@ function CommentFormArea({
           登入
         </Link>
         後，參加過這場活動的人可以留下評論。
+      </p>
+    );
+  }
+  if (formState === "already-commented") {
+    return (
+      <p className="rounded-[10px] bg-[#f7f9f9] p-5 text-center text-ink-muted">
+        你已經評論過這個活動了，感謝你的分享！
       </p>
     );
   }

@@ -2,33 +2,111 @@ import Image from "next/image";
 import { formatEventDateTime } from "@/lib/format-date";
 import type { CommentResponse } from "@/lib/api-types";
 import { CommentText } from "./CommentText";
+import { CommentForm } from "./CommentForm";
+import Link from "next/link";
+
+/**
+ * 評論表單要顯示什麼。
+ *
+ * ⚠️ 只用「前端本來就知道的事實」分岔：活動有沒有開始（時間）、
+ * 有沒有登入（cookie）。「有沒有買票」「是不是評過了」是後端的規則，
+ * 前端不複製 —— 送出後由 403 / 409 回答。
+ */
+export type CommentFormState = "form" | "not-started" | "login-required";
 
 /**
  * 活動評論區。
  *
- * ⚠️ 還沒做的：評論圖片（要先有物件儲存）、排序端點、分頁、
- * 以及「寫評論」的表單。停用的控制項刻意保持 disabled ——
- * 能點但什麼都不會發生，比停用更糟。
+ * ⚠️ 還沒做的：評論圖片（要先有物件儲存）、排序端點、分頁。
+ * 停用的控制項刻意保持 disabled —— 能點但什麼都不會發生，比停用更糟。
  */
 export function EventComments({
+  eventId,
   average,
   count,
   comments,
+  formState,
+  loginHref,
 }: {
+  eventId: number;
   /** ⚠️ null 代表「還沒有人評價」，不是 0 分 */
   average: number | null;
   count: number;
   comments: CommentResponse[];
+  formState: CommentFormState;
+  loginHref: string;
 }) {
-  // 還沒有人評價時，整個評分區塊沒有東西可顯示 —— 顯示 0.0 是憑空給差評
-  if (count === 0 || average === null) {
+  const hasComments = count > 0 && average !== null;
+
+  return (
+    <div className="flex flex-col gap-[18px]">
+      {/* ⚠️ 沒有評論時只跳過「摘要與列表」，不能提早 return ——
+          那樣零評論的活動就永遠看不到表單，沒有人能寫第一則 */}
+      {hasComments ? (
+        <ExistingComments average={average} count={count} comments={comments} />
+      ) : (
+        <p className="py-8 text-center text-ink-muted">
+          還沒有人評價這個活動。
+        </p>
+      )}
+
+      <CommentFormArea
+        eventId={eventId}
+        formState={formState}
+        loginHref={loginHref}
+      />
+    </div>
+  );
+}
+
+/**
+ * 依狀態顯示表單或說明。
+ *
+ * ⚠️ 「活動還沒開始」與「請先登入」是**說明現況**，不是複製後端的資格規則 ——
+ * 那兩件事前端本來就知道，顯示表單給他們反而是誤導。
+ */
+function CommentFormArea({
+  eventId,
+  formState,
+  loginHref,
+}: {
+  eventId: number;
+  formState: CommentFormState;
+  loginHref: string;
+}) {
+  if (formState === "not-started") {
     return (
-      <p className="py-10 text-center text-ink-muted">
-        還沒有人評價這個活動。參加過的人可以在活動開始後留下評論。
+      <p className="rounded-[10px] bg-[#f7f9f9] p-5 text-center text-ink-muted">
+        活動開始後，參加過的人可以在這裡留下評論。
       </p>
     );
   }
+  if (formState === "login-required") {
+    return (
+      <p className="rounded-[10px] bg-[#f7f9f9] p-5 text-center text-ink-muted">
+        <Link
+          href={loginHref}
+          className="text-brand-teal transition-colors duration-[350ms] hover:underline"
+        >
+          登入
+        </Link>
+        後，參加過這場活動的人可以留下評論。
+      </p>
+    );
+  }
+  return <CommentForm eventId={eventId} />;
+}
 
+/** 評分摘要 + 評論列表。只在真的有評論時渲染 */
+function ExistingComments({
+  average,
+  count,
+  comments,
+}: {
+  average: number;
+  count: number;
+  comments: CommentResponse[];
+}) {
   // 後端回的是原始平均（例如 4.333…），顯示到小數第一位
   const score = Number(average.toFixed(1));
 

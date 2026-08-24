@@ -2,6 +2,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { EventImageCarousel } from "@/features/events/components/EventImageCarousel";
 import { EventComments } from "@/features/events/components/EventComments";
+import type { CommentFormState } from "@/features/events/components/EventComments";
 import { EventInnerNav } from "@/features/events/components/EventInnerNav";
 // ⚠️ 常數要從中性模組拿，不能從上面那個 "use client" 檔案拿 ——
 // 那樣會拿到 client reference 代理，id 讀出來是 undefined
@@ -12,6 +13,7 @@ import {
 import { TicketTypePicker } from "@/features/events/components/TicketTypePicker";
 import type { TicketTypeOption } from "@/features/events/components/TicketTypePicker";
 import { formatEventDateTime } from "@/lib/format-date";
+import { getCurrentUser } from "@/lib/get-current-user";
 import { SpringApiError, springGet } from "@/lib/spring";
 import type {
   CommentResponse,
@@ -84,6 +86,23 @@ export default async function EventDetailPage({
     ...ticketType,
     unavailableReason: resolveUnavailableReason(ticketType, now),
   }));
+
+  // 評論表單要顯示什麼。
+  // ⚠️ 只用前端本來就知道的事實分岔：活動有沒有開始（時間）、有沒有登入（cookie）。
+  // 「有沒有買票」「是不是評過了」是後端的規則，前端不複製 ——
+  // 送出後由 403 / 409 回答，訊息直接顯示出來。
+  // getCurrentUser 有 cache()，layout 已經呼叫過，這裡不會再打一次後端
+  const user = await getCurrentUser();
+  const commentFormState: CommentFormState =
+    Date.parse(event.startAt) > now
+      ? "not-started"
+      : user
+        ? "form"
+        : "login-required";
+  // 登入後帶回評論區，而不是回到頁面頂端
+  const commentLoginHref = `/login?next=${encodeURIComponent(
+    `/events/${event.id}#${EVENT_SECTION_IDS.comments}`,
+  )}`;
 
   return (
     // ⚠️ 這層 wrapper 不能省，也不能把色塊塞進 <main>：
@@ -287,9 +306,12 @@ export default async function EventDetailPage({
             className="mt-[25px]"
           >
             <EventComments
+              eventId={event.id}
               average={event.ratingAverage}
               count={event.ratingCount}
               comments={comments.content}
+              formState={commentFormState}
+              loginHref={commentLoginHref}
             />
           </DetailSection>
         </div>

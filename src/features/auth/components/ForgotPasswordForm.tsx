@@ -65,7 +65,7 @@ export function ForgotPasswordForm() {
           onChange={(e) => setEmail(e.target.value)}
           required
           autoComplete="email"
-          className="rounded border border-gray-300 px-3 py-2 outline-none focus:border-gray-900"
+          className="rounded border border-gray-300 px-3 py-2 outline-none focus:border-brand"
         />
       </div>
 

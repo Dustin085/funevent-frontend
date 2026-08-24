@@ -204,6 +204,24 @@ export default async function EventDetailPage({
           </div>
         </section>
 
+        {/* 方案板。桌機在右下（col-2 row-2），手機上排在資訊卡之後。
+          ⭐ 手機的順序是靠「DOM 順序」達成的，不是 order utility ——
+          手機是單欄自動排列，DOM 往前搬就會往上移；桌機的位置由
+          col-start / row-start 明確指定，完全不受 DOM 順序影響。
+          之前它排在所有內容區塊之後，手機使用者要滑過活動介紹、注意事項、
+          主辦單位、評論才看得到「立即報名」。
+
+          ⚠️ 用 DOM 順序而不是 order-first：order 只改視覺順序，
+          Tab 鍵仍照 DOM 走 —— 那會做出「看到的順序和操作的順序不一致」，
+          是無障礙的經典反模式。代價是桌機的 Tab 會先到方案板再到左側內容，
+          但那兩塊在桌機上是並排的，本來就沒有明確的先後。
+
+          ⚠️ lg:self-start 不能少：grid 項目預設 stretch，會被拉到整列高，
+          sticky 就沒有可滑動的空間、看起來完全沒作用（而且不會報錯） */}
+        <aside className="lg:col-start-2 lg:row-start-2 lg:sticky lg:top-6 lg:self-start">
+          <TicketTypePicker eventId={event.id} options={options} />
+        </aside>
+
         {/* 左下：內部導覽列 + 所有內容區塊。
             ⚠️ 這一層不能用 gap —— 導覽列的分頁標籤是貼著「活動介紹」上緣的，
             中間有間距就變成兩個分離的東西了。改成除了第一個區塊外各自加 mt */}
@@ -276,13 +294,6 @@ export default async function EventDetailPage({
           </DetailSection>
         </div>
 
-        {/* 右下：方案板。舊版用 jQuery 監聽 scroll 手動算 top，
-          現在用原生 position: sticky，零 JavaScript。
-          ⚠️ lg:self-start 不能少：grid 項目預設 stretch，會被拉到整列高，
-          sticky 就沒有可滑動的空間、看起來完全沒作用（而且不會報錯） */}
-        <aside className="lg:col-start-2 lg:row-start-2 lg:sticky lg:top-6 lg:self-start">
-          <TicketTypePicker eventId={event.id} options={options} />
-        </aside>
       </main>
     </div>
   );

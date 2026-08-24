@@ -1,7 +1,13 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { OrganizerSetupForm } from "@/features/organizer/components/OrganizerSetupForm";
 import { getCurrentOrganizer } from "@/lib/get-current-organizer";
 import { getCurrentUser } from "@/lib/get-current-user";
+
+export const metadata: Metadata = {
+  title: "建立主辦者身分",
+  robots: { index: false },
+};
 
 export default async function OrganizerSetupPage() {
   const user = await getCurrentUser();

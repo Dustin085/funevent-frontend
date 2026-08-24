@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Pagination } from "@/components/Pagination";
@@ -22,6 +23,11 @@ const STATUS_TABS: { code: OrderStatus | null; label: string }[] = [
   { code: "PAID", label: "已付款" },
   { code: "CANCELLED", label: "已取消" },
 ];
+
+export const metadata: Metadata = {
+  title: "訂單與銷售",
+  robots: { index: false },
+};
 
 export default async function EventOrdersPage({
   params,

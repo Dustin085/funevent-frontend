@@ -1,9 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { RegisterForm } from "@/features/auth/components/RegisterForm";
 import { getCurrentUser } from "@/lib/get-current-user";
 import { safeNextPath } from "@/lib/safe-redirect";
 import { GoogleLoginButton } from "@/features/auth/components/GoogleLoginButton";
+
+export const metadata: Metadata = { title: "註冊" };
 
 export default async function RegisterPage({
   searchParams,

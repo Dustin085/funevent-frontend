@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import { ResetPasswordForm } from "@/features/auth/components/ResetPasswordForm";
 import { Suspense } from "react";
+
+// ⚠️ 網址帶著重設 token，絕對不能被索引
+export const metadata: Metadata = {
+  title: "重設密碼",
+  robots: { index: false },
+};
 
 export default function ResetPasswordPage() {
   return (

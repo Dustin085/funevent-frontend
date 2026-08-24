@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Pagination } from "@/components/Pagination";
 import { SearchBox } from "@/components/SearchBox";
 import { EventCard } from "@/features/events/components/EventCard";
@@ -24,6 +25,18 @@ const PAGE_SIZE = 12;
  * ⭐ 整頁的搜尋與篩選都是原生 GET 表單與連結 —— 關掉 JavaScript 也能用。
  * 價格區間與排序還需要後端支援（minPrice 聚合、Pageable 的 sort 參數）。
  */
+/**
+ * 標題帶關鍵字。⚠️ 分類與地區不放進標題 ——
+ * 那需要多打 API 拿顯示名稱，而標題的價值主要來自關鍵字。
+ */
+export async function generateMetadata({
+  searchParams,
+}: PageProps<"/search">): Promise<Metadata> {
+  const { q } = await searchParams;
+  const keyword = firstValue(q).trim();
+  return { title: keyword ? `「${keyword}」的搜尋結果` : "搜尋活動" };
+}
+
 export default async function SearchPage({
   searchParams,
 }: PageProps<"/search">) {
@@ -58,10 +71,7 @@ export default async function SearchPage({
     `/api/events?${query}`,
   );
 
-  const nameOf = (
-    list: (CategoryResponse | CityResponse)[],
-    codes: string[],
-  ) =>
+  const nameOf = (list: (CategoryResponse | CityResponse)[], codes: string[]) =>
     codes
       .map((code) => list.find((item) => item.code === code)?.name)
       .filter(Boolean) as string[];

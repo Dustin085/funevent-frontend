@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { OrderStatusBadge } from "@/features/orders/components/OrderStatusBadge";
@@ -5,6 +6,14 @@ import { PayButton } from "@/features/orders/components/PayButton";
 import { formatEventDateTime } from "@/lib/format-date";
 import { SpringApiError, springGet } from "@/lib/spring";
 import type { OrderResponse } from "@/lib/api-types";
+
+export async function generateMetadata({
+  params,
+}: PageProps<"/orders/[id]">): Promise<Metadata> {
+  const { id } = await params;
+  // ⚠️ 不打 API 只為了標題 —— 訂單編號就足以辨識，而且這頁 noindex
+  return { title: `訂單 #${id}`, robots: { index: false } };
+}
 
 export default async function OrderDetailPage({
   params,

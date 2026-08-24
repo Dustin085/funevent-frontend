@@ -1,4 +1,6 @@
+import type { Metadata } from "next";
 import Image from "next/image";
+import { cache } from "react";
 import { notFound } from "next/navigation";
 import { EventImageCarousel } from "@/features/events/components/EventImageCarousel";
 import { EventComments } from "@/features/events/components/EventComments";
@@ -54,6 +56,51 @@ const PLACEHOLDER_NOTICE = `1. 請於活動開始前 15 分鐘抵達現場報到
 3. 為維護講師與其他學員權益，課程進行中請勿錄影。
 4. 報名完成後恕不轉讓，如需退票請於活動前 7 日提出。`;
 
+/**
+ * ⚠️ 用 React 的 cache() 包起來：generateMetadata 與頁面元件都要這筆資料，
+ * 不包的話同一個請求會打後端兩次。
+ * springGet 用的是 cache: "no-store"，不能依賴 Next 的 fetch 記憶化。
+ */
+const getEvent = cache((id: string) =>
+  springGet<EventResponse>(`/api/events/${id}`),
+);
+
+/**
+ * TEXT 欄位有換行與空行，meta description 要壓成一行並截短。
+ * ⚠️ 搜尋引擎大約只顯示 150–160 字元，過長會被截在句子中間。
+ */
+function toMetaDescription(text: string, max = 150): string {
+  const oneLine = text.replace(/s+/g, " ").trim();
+  return oneLine.length <= max ? oneLine : `${oneLine.slice(0, max - 1)}…`;
+}
+
+export async function generateMetadata({
+  params,
+}: PageProps<"/events/[id]">): Promise<Metadata> {
+  const { id } = await params;
+  let event: EventResponse;
+  try {
+    event = await getEvent(id);
+  } catch {
+    // ⚠️ 這裡不要 notFound()：頁面元件自己會處理，
+    // 在 metadata 裡提早中斷會讓真正的錯誤變得難追
+    return { title: "找不到活動" };
+  }
+
+  const description = toMetaDescription(event.description);
+  return {
+    title: event.name,
+    description,
+    openGraph: {
+      title: event.name,
+      description,
+      type: "website",
+      // 相對路徑會被 layout 的 metadataBase 補成絕對網址
+      images: event.imageUrls.length > 0 ? [event.imageUrls[0]] : undefined,
+    },
+  };
+}
+
 export default async function EventDetailPage({
   params,
 }: PageProps<"/events/[id]">) {
@@ -66,7 +113,7 @@ export default async function EventDetailPage({
     // 三個請求互不相依，平行送出。後端本來就是三個端點：
     // 活動詳情是公開資料，票種與評論是活動的子資源
     [event, ticketTypes, comments] = await Promise.all([
-      springGet<EventResponse>(`/api/events/${id}`),
+      getEvent(id),
       springGet<TicketTypeResponse[]>(`/api/events/${id}/ticket-types`),
       springGet<PagedModel<CommentResponse>>(
         `/api/events/${id}/comments?size=${COMMENT_PAGE_SIZE}`,
@@ -315,7 +362,6 @@ export default async function EventDetailPage({
             />
           </DetailSection>
         </div>
-
       </main>
     </div>
   );

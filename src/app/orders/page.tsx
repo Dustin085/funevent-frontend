@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Pagination } from "@/components/Pagination";
@@ -6,6 +7,15 @@ import { OrderStatusBadge } from "@/features/orders/components/OrderStatusBadge"
 import { formatEventDateTime } from "@/lib/format-date";
 import { SpringApiError, springGet } from "@/lib/spring";
 import type { OrderResponse, PagedModel } from "@/lib/api-types";
+
+/**
+ * ⚠️ noindex：這頁要登入才有內容，爬蟲只會拿到「請先登入」的空殼。
+ * 不標的話那個空殼會佔用網域的索引配額，搜尋結果多出一堆無用項目。
+ */
+export const metadata: Metadata = {
+  title: "我的訂單",
+  robots: { index: false },
+};
 
 const PAGE_SIZE = 10;
 

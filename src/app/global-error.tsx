@@ -55,7 +55,9 @@ export default function GlobalError({
             重新載入
           </button>
           {error.digest && (
-            <p style={{ marginTop: "1rem", fontSize: "12px", color: "#8a8a8a" }}>
+            <p
+              style={{ marginTop: "1rem", fontSize: "12px", color: "#8a8a8a" }}
+            >
               錯誤代碼：{error.digest}
             </p>
           )}

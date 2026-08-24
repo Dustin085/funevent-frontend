@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -13,6 +14,11 @@ import type {
   OrganizerEventSummaryResponse,
   PagedModel,
 } from "@/lib/api-types";
+
+export const metadata: Metadata = {
+  title: "主辦者後台",
+  robots: { index: false },
+};
 
 const PAGE_SIZE = 20;
 

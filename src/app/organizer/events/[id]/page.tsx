@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { EventForm } from "@/features/organizer/components/EventForm";
@@ -18,6 +19,11 @@ interface OrganizerEventDetail {
   event: EventResponse;
   ticketTypes: TicketTypeResponse[];
 }
+
+export const metadata: Metadata = {
+  title: "編輯活動",
+  robots: { index: false },
+};
 
 export default async function EditEventPage({
   params,

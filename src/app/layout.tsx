@@ -24,7 +24,17 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "活動趣 FunEvent",
+  // ⚠️ metadataBase 不能省：OG 圖片與 canonical 需要絕對網址，
+  // 而我們的圖片路徑是相對的（/images/events/x.jpg）。
+  // 沒設的話 Next 會警告，而且分享到 Line／FB 時圖片不會出現
+  metadataBase: new URL(process.env.APP_BASE_URL ?? "http://localhost:3000"),
+  title: {
+    // 首頁用這個 —— 首頁不該叫「首頁｜活動趣」
+    default: "活動趣 FunEvent｜找活動、辦活動",
+    // 子頁只要寫 title: "登入" 就會變成「登入｜活動趣」，
+    // 不必每頁重複品牌名
+    template: "%s｜活動趣",
+  },
   description: "找活動、辦活動，都在活動趣",
 };
 

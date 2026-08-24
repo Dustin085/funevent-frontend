@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { EventForm } from "@/features/organizer/components/EventForm";
@@ -5,6 +6,11 @@ import { getCurrentOrganizer } from "@/lib/get-current-organizer";
 import { getCurrentUser } from "@/lib/get-current-user";
 import { springGet } from "@/lib/spring";
 import type { CategoryResponse, CityResponse } from "@/lib/api-types";
+
+export const metadata: Metadata = {
+  title: "建立活動",
+  robots: { index: false },
+};
 
 export default async function NewEventPage() {
   // 和列表頁一樣的三段式入口判斷

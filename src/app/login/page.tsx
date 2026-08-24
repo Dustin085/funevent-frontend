@@ -1,9 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { GoogleLoginButton } from "@/features/auth/components/GoogleLoginButton";
 import { LoginForm } from "@/features/auth/components/LoginForm";
 import { getCurrentUser } from "@/lib/get-current-user";
 import { safeNextPath } from "@/lib/safe-redirect";
+
+export const metadata: Metadata = { title: "登入" };
 
 /**
  * OAuth 流程失敗時 callback 會導回這裡並帶 ?error=<code>。
@@ -72,8 +75,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
         <GoogleLoginButton next={nextPath} />
 
         <p className="mt-4 text-sm text-foreground">
-          還沒有帳號？{" "}
-          {/* 把 next 一路帶下去，註冊完回到登入頁時才不會斷掉 */}
+          還沒有帳號？ {/* 把 next 一路帶下去，註冊完回到登入頁時才不會斷掉 */}
           <Link
             href={`/register?next=${encodeURIComponent(nextPath)}`}
             className="text-brand-teal hover:underline"

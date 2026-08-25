@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Pagination } from "@/components/Pagination";
 import { SectionTitle } from "@/components/SectionTitle";
+import { DeleteCommentButton } from "@/features/account/components/DeleteCommentButton";
 import { CommentText } from "@/features/events/components/CommentText";
 import { Stars } from "@/features/events/components/Stars";
 import { formatEventDateTime } from "@/lib/format-date";
@@ -83,6 +84,13 @@ export default async function MyCommentsPage({
 
               {/* 內容可為 null —— 只給星等不寫字是合理的評價方式 */}
               {comment.content && <CommentText text={comment.content} />}
+
+              {/* ⚠️ 目前沒有「修改」端點，刪除是唯一的更正路徑 ——
+                  刪掉之後 UNIQUE(event_id, user_id) 解開，
+                  活動頁的評論表單會自動重新出現，可以重寫一則 */}
+              <div className="flex justify-end">
+                <DeleteCommentButton commentId={comment.id} />
+              </div>
             </li>
           ))}
         </ul>

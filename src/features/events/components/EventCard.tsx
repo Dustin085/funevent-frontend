@@ -69,13 +69,26 @@ export function EventCard({ event }: { event: EventSummaryResponse }) {
           </p>
         </div>
 
-        {/* ⚠️ TODO：票價與剩餘張數目前是寫死的，只為了確認版面。
-            要變成真資料，EventSummaryResponse 需要加 minPrice 與 remainingStock
-            （對 ticket_types 做 min(price) / sum(stock) 的聚合查詢，
-            注意別做成 1+N）。在那之前，這兩個數字不代表任何東西。 */}
+        {/* 最低價與剩餘張數。
+            ⚠️ 後端只把 stock > 0 的票種算進 minPrice —— 售罄票種的價格拿來顯示
+            「NT$ X 起」是在騙人，那個價格永遠買不到。
+
+            ⚠️ minPrice 為 null 其實混合了兩種情況（沒建票種／全部售完），
+            這裡一律顯示「已售完」。可以這樣是因為**發布活動至少要有一個票種**，
+            所以出現在這個列表上的活動不會是前者。 */}
         <div className="flex items-baseline justify-between">
-          <p className="text-[16px] font-bold text-brand-amber">NT$ 690 起</p>
-          <p className="text-[14px] text-ink-muted">剩 32 張</p>
+          {event.minPrice === null ? (
+            <p className="text-[16px] font-bold text-ink-muted">已售完</p>
+          ) : (
+            <>
+              <p className="text-[16px] font-bold text-brand-amber">
+                NT$ {event.minPrice.toLocaleString("zh-TW")} 起
+              </p>
+              <p className="text-[14px] text-ink-muted">
+                剩 {event.remainingStock.toLocaleString("zh-TW")} 張
+              </p>
+            </>
+          )}
         </div>
       </div>
 

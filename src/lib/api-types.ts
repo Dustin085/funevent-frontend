@@ -65,6 +65,13 @@ export interface EventSummaryResponse {
   coverImageUrl: string | null;
   organizerId: number;
   organizerName: string;
+  /**
+   * 還買得到的票種裡最低的價格（後端只算 stock > 0 的票種）。
+   * ⚠️ null 代表一張都買不到，**不是免費** —— 不能顯示成 0
+   */
+  minPrice: number | null;
+  /** 所有票種的剩餘張數總和 */
+  remainingStock: number;
 }
 
 export type EventStatus = "DRAFT" | "PUBLISHED" | "CANCELLED";

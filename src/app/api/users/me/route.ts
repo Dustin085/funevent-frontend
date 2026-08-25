@@ -1,30 +1,11 @@
-import { ApiError, UserResponse } from "@/lib/api-types";
-import { NextResponse } from "next/server";
+import { proxyToSpring } from "@/lib/spring-proxy";
 
-const API_BASE_URL = process.env.API_BASE_URL ?? "http://localhost:8080";
-
-export async function GET() {
-  let springResponse: Response;
-  try {
-    springResponse = await fetch(`${API_BASE_URL}/api/users/me`);
-  } catch {
-    return NextResponse.json(
-      { message: "無法連線到伺服器，請稍後再試" },
-      { status: 502 },
-    );
-  }
-
-  if (!springResponse.ok) {
-    const error: ApiError = await springResponse.json();
-    return NextResponse.json(error, { status: springResponse.status });
-  }
-
-  const user: UserResponse = await springResponse.json();
-
-  return NextResponse.json({
-    id: user.id,
-    email: user.email,
-    name: user.name,
-    role: user.role,
-  });
+/**
+ * ⚠️ 這裡原本有一支 GET，已經刪掉：它沒有任何呼叫端，而且 fetch 時
+ * 根本沒帶 Authorization header（真的被呼叫也只會 401）。
+ * Server Component 讀使用者一律走 lib/get-current-user.ts 直接打 Spring，
+ * 不經過 BFF —— 那條路徑本來就拿得到 httpOnly cookie。
+ */
+export async function PATCH(request: Request) {
+  return proxyToSpring(request, "/api/users/me", "PATCH");
 }

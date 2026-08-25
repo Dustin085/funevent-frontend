@@ -46,7 +46,8 @@ export default async function MyOrdersPage({
   const totalPages = Math.max(1, orders.page.totalPages);
 
   return (
-    <main className="mx-auto flex w-full max-w-[900px] flex-col gap-6 px-4 py-8 sm:px-8">
+    // 版面寬度與外距交給 (member)/layout.tsx
+    <main className="flex flex-col gap-6">
       <SectionTitle title="我的訂單" />
 
       {orders.content.length === 0 ? (

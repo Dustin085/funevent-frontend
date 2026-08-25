@@ -6,10 +6,22 @@ export interface UserResponse {
   email: string;
   name: string;
   role: RoleType;
+  /**
+   * 這個帳號能不能用密碼登入。
+   * ⚠️ 第三方登入建立的帳號沒有密碼 —— 會員中心靠它決定要顯示
+   * 「修改密碼」表單還是「你是用 Google 登入的」說明
+   */
+  hasPassword: boolean;
 }
 
-/** 對應後端 AuthResponse（含 token） */
-export interface AuthResponse extends UserResponse {
+/**
+ * 對應後端 AuthResponse（含 token）。
+ *
+ * ⚠️ 用 Omit 排掉 hasPassword —— 後端的 AuthResponse 是**另一個 record**，
+ * 沒有這個欄位。直接 extends 會讓型別宣稱有一個實際上不存在的欄位，
+ * 讀到的會是 undefined 而 TypeScript 不會警告。
+ */
+export interface AuthResponse extends Omit<UserResponse, "hasPassword"> {
   accessToken: string; // 15 分鐘
   refreshToken: string; // 7 天
 }
@@ -95,6 +107,20 @@ export interface CityResponse {
 export interface CommentResponse {
   id: number;
   userName: string;
+  rating: number;
+  content: string | null;
+  createdAt: string;
+}
+
+/**
+ * 對應後端 MyCommentResponse（會員中心的「我的評論」）。
+ * ⚠️ 和 CommentResponse 的差別：沒有 userName（每則都是自己寫的），
+ * 換成 eventId / eventName（需要知道評的是哪個活動）
+ */
+export interface MyCommentResponse {
+  id: number;
+  eventId: number;
+  eventName: string;
   rating: number;
   content: string | null;
   createdAt: string;

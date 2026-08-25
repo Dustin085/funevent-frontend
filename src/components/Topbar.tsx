@@ -86,10 +86,10 @@ export function Topbar({ user }: { user: UserResponse | null }) {
           </li>
 
           <li>
-            {/* 登入後連到「我的訂單」—— 會員中心還沒做，
-                原本的 /member 點了會是 404 */}
+            {/* 登入後連到會員中心。原本指向 /orders —— 訂單入口移進了
+                會員中心頁，那裡才是「跟我這個人有關的事」的集散地 */}
             {user ? (
-              <Link href="/orders" className={menuBtnClass}>
+              <Link href="/account" className={menuBtnClass}>
                 <MenuIcon src="/images/login-icon.svg" />
                 {/* 名字可能很長，限制寬度後截斷，不讓它把整列撐開 */}
                 <span className={`${menuLabelClass} max-w-[12ch] truncate`}>

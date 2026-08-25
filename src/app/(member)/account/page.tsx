@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { SectionTitle } from "@/components/SectionTitle";
 import { PasswordForm } from "@/features/account/components/PasswordForm";
 import { ProfileForm } from "@/features/account/components/ProfileForm";
 import { getCurrentUser } from "@/lib/get-current-user";
@@ -18,9 +19,7 @@ export default async function AccountPage() {
     // ⚠️ 版面寬度與外距交給 (member)/layout.tsx —— 這裡只負責內容，
     // 各頁自己再包一層 mx-auto max-w 會跟側邊欄的版面打架
     <main className="flex flex-col gap-6">
-      <h1 className="text-[24px] font-medium text-ink-soft sm:text-[28px]">
-        帳號管理
-      </h1>
+      <SectionTitle title="帳號管理" />
 
       <Section title="基本資料">
         <div className="mb-4 flex flex-col gap-1">

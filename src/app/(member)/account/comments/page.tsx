@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Pagination } from "@/components/Pagination";
+import { SectionTitle } from "@/components/SectionTitle";
 import { CommentText } from "@/features/events/components/CommentText";
 import { Stars } from "@/features/events/components/Stars";
 import { formatEventDateTime } from "@/lib/format-date";
@@ -42,9 +43,7 @@ export default async function MyCommentsPage({
   return (
     // 版面寬度與外距交給 (member)/layout.tsx
     <main className="flex flex-col gap-6">
-      <h1 className="text-[24px] font-medium text-ink-soft sm:text-[28px]">
-        我的評論
-      </h1>
+      <SectionTitle title="我的評論" />
 
       {comments.content.length === 0 ? (
         <div className="rounded-[10px] bg-white p-10 text-center funevent-shadow">

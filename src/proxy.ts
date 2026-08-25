@@ -83,8 +83,10 @@ export async function proxy(request: NextRequest) {
  * 沒有它，proxy 會在每一個請求上執行——包含 Topbar 那六張 SVG、
  * _next/static 的每個 JS chunk，每一個都會觸發一次換票檢查。
  *
- * 排除 api：BFF 的 route handler 自己處理 cookie，不需要 proxy 插手。
+ * ⚠️ 曾經排除過 api，那是錯的：BFF 的 route handler 只會讀 cookie，
+ * 不會換票 —— 於是使用者閒置超過 AT 效期後，換頁正常但「按任何按鈕」
+ * 都會得到 401。client 端動作同樣需要 proxy 先把票換好。
  */
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|images|favicon.ico).*)"],
+  matcher: ["/((?!_next/static|_next/image|images|favicon.ico).*)"],
 };

@@ -15,15 +15,17 @@ export type RefreshResult =
 /**
  * 進行中的換票請求，key 是「舊的 refresh token」。
  *
- * ⚠ 為什麼需要：多個分頁（或 Next <Link> 的預抓取）可能在 AT 過期的同一瞬間
- * 各自觸發 proxy，全部讀到同一個舊 RT。若各自打 Spring，第二個之後會撞上
- * 「已使用的 RT」→ 觸發後端的竊用偵測 → 整條 family 被撤銷 → 使用者莫名被登出。
+ * 多個分頁（或 Next <Link> 的預抓取）可能在 AT 過期的同一瞬間各自觸發 proxy，
+ * 全部讀到同一個舊 RT。這裡讓同一個 RT 只實際送出一次請求，
+ * 其餘共用同一個 Promise、拿到同一組新 token。
  *
- * 解法：同一個 RT 只實際送出一次請求，其餘共用同一個 Promise、拿到同一組新 token。
- * 對 Spring 而言只發生了一次輪替。
+ * ⭐ 這只是省下多餘的往返，**不是正確性的前提**。
+ * 後端有 reuse interval（寬限期）：寬限期內的重放會拿到同一張票，
+ * 所以這個 map 失效也不會造成登出。
  *
- * ⚠ 限制：只在單一 Node 程序內有效。水平擴展成多台實例或部署到 serverless 時會失效，
- * 那時需要後端的 reuse interval（寬限期）來兜底。
+ * ⚠ 而它確實會失效 —— 只在單一 Node 程序內有效，部署到 serverless（例如 Vercel）
+ * 之後，同一瞬間的請求很可能落在不同執行環境，這個 map 基本上不能依賴。
+ * 真正在擋這件事的是後端的寬限期，不是這裡。
  */
 const inFlight = new Map<string, Promise<RefreshResult>>();
 

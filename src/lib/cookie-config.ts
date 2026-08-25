@@ -8,8 +8,22 @@
 export const ACCESS_TOKEN_COOKIE = "funevent_access_token";
 export const REFRESH_TOKEN_COOKIE = "funevent_refresh_token";
 
-/** 對齊後端 app.access-token.expiration（900000 毫秒） */
-export const ACCESS_TOKEN_MAX_AGE_SECONDS = 15 * 60; // 15*60
+/** 對齊後端 app.access-token.expiration（900000 毫秒）。⚠️ 後端改了這裡要跟著改 */
+const ACCESS_TOKEN_EXPIRATION_SECONDS = 15 * 60;
+
+/**
+ * ⭐ cookie 的效期刻意「比 JWT 的 exp 短一分鐘」，這是安全邊際不是筆誤。
+ *
+ * proxy.ts 判斷要不要換票的依據是「AT cookie 還在不在」。兩者效期若設成
+ * 完全一樣，中間會出現一段死角：cookie 剩最後幾秒時 proxy 判定「AT 還在，
+ * 不用換票」，但頁面渲染時打到 Spring，JWT 已經過期 → 401 → 畫面顯示成未登入。
+ *
+ * 讓 cookie 早一步消失，proxy 就永遠在 JWT 真正失效「之前」換到新票。
+ */
+const REFRESH_MARGIN_SECONDS = 60;
+export const ACCESS_TOKEN_MAX_AGE_SECONDS =
+  ACCESS_TOKEN_EXPIRATION_SECONDS - REFRESH_MARGIN_SECONDS;
+
 /** 對齊後端 app.refresh-token.expiration（604800000 毫秒） */
 export const REFRESH_TOKEN_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
 

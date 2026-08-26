@@ -72,7 +72,17 @@ export default async function MyEventsPage({
           <h1 className="text-[24px] font-medium text-ink-soft sm:text-[28px]">
             主辦者後台
           </h1>
-          <p className="mt-1 text-[16px] text-ink-muted">{organizer.name}</p>
+          {/* 單位名稱本身就是進入編輯的入口 —— 名稱與介紹會顯示在每個活動頁上，
+              使用者會來這裡找它 */}
+          <p className="mt-1 text-[16px] text-ink-muted">
+            {organizer.name}
+            <Link
+              href="/organizer/profile"
+              className="ml-3 text-[14px] text-brand-teal transition-colors duration-[350ms] hover:text-brand-teal-hover"
+            >
+              編輯單位資料
+            </Link>
+          </p>
         </div>
         <Link
           href="/organizer/events/new"

@@ -2,33 +2,48 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import type { ApiError } from "@/lib/api-types";
+import type { ApiError, OrganizerResponse } from "@/lib/api-types";
 
 /**
- * 建立主辦者身分。
+ * 主辦者身分的建立與編輯。
  *
  * ⚠️ 只有兩個欄位，沿用 LoginForm 的手寫 useState 模式 ——
- * 不值得為它引入表單函式庫。活動表單（9 個欄位 + 可增刪的票種陣列）才需要。
+ * 不值得為它引入表單函式庫。活動表單（9 個欄位 + 可增刪的圖片與票種陣列）才需要。
+ *
+ * ⚠️ 建立與編輯共用同一個元件而不是複製一份：兩者只差方法、按鈕文字、
+ * 送出後的去向。複製出來的話，以後多加一個欄位很容易只改到一邊。
  */
-export function OrganizerSetupForm() {
+export function OrganizerSetupForm({
+  organizer,
+}: {
+  /** 有值就是編輯模式，沒有就是建立 */
+  organizer?: OrganizerResponse;
+}) {
   const router = useRouter();
-  const [name, setName] = useState("");
-  const [introduction, setIntroduction] = useState("");
+  const isEdit = organizer !== undefined;
+
+  const [name, setName] = useState(organizer?.name ?? "");
+  const [introduction, setIntroduction] = useState(
+    organizer?.introduction ?? "",
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     // 阻止瀏覽器原生送出，否則整頁會重新載入
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setSaved(false);
 
     try {
       // 相對路徑 → 打自己的 BFF route handler，不是 Spring
       const res = await fetch("/api/organizer", {
-        method: "POST",
+        method: isEdit ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
-        // introduction 是選填，空字串就送 null
+        // introduction 是選填，空字串就送 null ——
+        // 存成空字串的話，前端的 {introduction && ...} 判斷會失效
         body: JSON.stringify({
           name,
           introduction: introduction.trim() || null,
@@ -37,7 +52,17 @@ export function OrganizerSetupForm() {
 
       if (!res.ok) {
         const apiError: ApiError = await res.json();
-        setError(apiError.message ?? "建立失敗，請稍後再試");
+        setError(
+          apiError.message ?? (isEdit ? "儲存失敗，請稍後再試" : "建立失敗，請稍後再試"),
+        );
+        return;
+      }
+
+      if (isEdit) {
+        // 編輯留在原頁。refresh 讓 Server Component 重新取資料，
+        // 免得使用者按下重整才看到自己剛改的名稱
+        setSaved(true);
+        router.refresh();
         return;
       }
 
@@ -66,7 +91,7 @@ export function OrganizerSetupForm() {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="例如：蘭響音樂教室"
-          className="rounded border border-gray-300 px-3 py-2 outline-none focus:border-gray-900"
+          className="rounded border border-gray-300 px-3 py-2 outline-none focus:border-brand"
         />
       </div>
 
@@ -85,7 +110,7 @@ export function OrganizerSetupForm() {
           value={introduction}
           onChange={(e) => setIntroduction(e.target.value)}
           placeholder="會顯示在你的活動頁面上"
-          className="rounded border border-gray-300 px-3 py-2 outline-none focus:border-gray-900"
+          className="rounded border border-gray-300 px-3 py-2 outline-none focus:border-brand"
         />
       </div>
 
@@ -95,13 +120,27 @@ export function OrganizerSetupForm() {
         </p>
       )}
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="rounded bg-brand px-4 py-2 text-white transition-colors duration-[350ms] hover:bg-brand-hover disabled:opacity-50"
-      >
-        {loading ? "建立中…" : "建立主辦者身分"}
-      </button>
+      <div className="flex items-center gap-3">
+        <button
+          type="submit"
+          disabled={loading}
+          className="self-start rounded-[10px] bg-brand px-6 py-2.5 text-white transition-colors duration-[350ms] hover:bg-brand-hover disabled:opacity-50"
+        >
+          {loading
+            ? isEdit
+              ? "儲存中…"
+              : "建立中…"
+            : isEdit
+              ? "儲存變更"
+              : "建立主辦者身分"}
+        </button>
+        {/* role="status"：成功訊息不像錯誤那麼急，用 polite 的宣告方式 */}
+        {saved && !loading && (
+          <p role="status" className="text-sm text-brand-teal">
+            已儲存
+          </p>
+        )}
+      </div>
     </form>
   );
 }

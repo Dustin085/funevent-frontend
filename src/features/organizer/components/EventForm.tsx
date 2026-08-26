@@ -30,21 +30,28 @@ export function EventForm({
   categories,
   cities,
   event,
+  onCancel,
+  onSaved,
 }: {
   categories: CategoryResponse[];
   cities: CityResponse[];
   /** 有值就是編輯模式，沒有就是建立 */
   event?: EventResponse;
+  /** 有給就渲染「取消」按鈕。⚠️ 兩個 callback 都不給時行為完全不變（建立活動頁） */
+  onCancel?: () => void;
+  /** 編輯儲存成功後呼叫，讓外層切回唯讀檢視 */
+  onSaved?: () => void;
 }) {
   const router = useRouter();
   const isEdit = event !== undefined;
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [confirmingCancel, setConfirmingCancel] = useState(false);
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isDirty },
   } = useForm<EventFormValues>({
     resolver: zodResolver(eventFormSchema),
     // ⚠️ 預設是 onSubmit（按下送出才驗）。九個欄位的表單等到最後
@@ -104,9 +111,15 @@ export function EventForm({
 
       if (isEdit) {
         // 編輯留在原頁 —— 使用者接著多半是要改票種。
-        // refresh 讓 Server Component 重新取資料，標題等處才會同步
-        setSaved(true);
+        // refresh 讓 Server Component 重新取資料，標題與唯讀檢視才會同步
         router.refresh();
+        if (onSaved) {
+          // 切回唯讀。⚠️ 這裡不設 saved —— 元件馬上會被卸載，
+          // 設了也沒人看得到，而唯讀檢視本身就是「存好了」的證據
+          onSaved();
+        } else {
+          setSaved(true);
+        }
         return;
       }
 
@@ -275,7 +288,7 @@ export function EventForm({
         </p>
       )}
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         {/* ⚠️ isSubmitting 由 RHF 提供，不用自己開 loading state ——
             只要 onSubmit 回傳 Promise，它會自己追蹤 */}
         <button
@@ -291,6 +304,41 @@ export function EventForm({
               ? "儲存變更"
               : "建立活動（草稿）"}
         </button>
+
+        {/* ⚠️ 底下每個按鈕都要寫 type="button"：在 <form> 裡沒指定 type 的
+            button 預設是 submit，按「取消」會變成送出表單 */}
+        {onCancel &&
+          (confirmingCancel ? (
+            <>
+              <span className="text-sm text-ink-muted">尚未儲存，確定放棄？</span>
+              <button
+                type="button"
+                onClick={() => setConfirmingCancel(false)}
+                className="text-sm text-ink-soft transition-opacity duration-[350ms] hover:opacity-70"
+              >
+                繼續編輯
+              </button>
+              <button
+                type="button"
+                onClick={onCancel}
+                className="text-sm font-medium text-red-600 transition-opacity duration-[350ms] hover:opacity-70"
+              >
+                放棄
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              // 沒改過就直接離開；改過才問一次 ——
+              // 九個欄位的表單誤觸一下全部丟掉太痛
+              onClick={() => (isDirty ? setConfirmingCancel(true) : onCancel())}
+              disabled={isSubmitting}
+              className="rounded-[10px] border border-[#d9d9d9] px-6 py-2.5 text-ink-soft transition-colors duration-[350ms] hover:border-brand disabled:opacity-50"
+            >
+              取消
+            </button>
+          ))}
+
         {/* role="status"：成功訊息不像錯誤那麼急，用 polite 的宣告方式 */}
         {saved && !isSubmitting && (
           <p role="status" className="text-sm text-brand-teal">

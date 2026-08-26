@@ -12,6 +12,7 @@ export function RegisterForm({ next = "/" }: { next?: string }) {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -19,12 +20,35 @@ export function RegisterForm({ next = "/" }: { next?: string }) {
   const [error, setError] = useState<string | null>(null);
   /** 欄位層級錯誤：400 @Valid 驗證失敗 */
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  /**
+   * ⚠️ 和 fieldErrors 分開：那個是後端回來的，這個純粹是前端防打錯。
+   * 後端的 RegisterRequest 根本沒有 confirmPassword 這個欄位
+   */
+  const [confirmError, setConfirmError] = useState<string | null>(null);
+
+  // 使用者一開始修正就把紅字清掉，不要讓它在已經正確的輸入旁邊繼續掛著
+  const updatePassword = (value: string) => {
+    setPassword(value);
+    setConfirmError(null);
+  };
+  const updateConfirmPassword = (value: string) => {
+    setConfirmPassword(value);
+    setConfirmError(null);
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (password !== confirmPassword) {
+      // ⚠️ 連 API 都不用打 —— 這是純前端的欄位，後端無從驗證
+      setConfirmError("兩次輸入的密碼不一致");
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setFieldErrors({});
+    setConfirmError(null);
 
     try {
       const res = await fetch("/api/auth/register", {
@@ -78,9 +102,20 @@ export function RegisterForm({ next = "/" }: { next?: string }) {
         label="密碼"
         type="password"
         value={password}
-        onChange={setPassword}
+        onChange={updatePassword}
         autoComplete="new-password"
         errors={fieldErrors.password}
+      />
+      {/* ⚠️ 這個值不會送給後端，它只是防打錯 ——
+          註冊時打錯密碼的話，使用者要等到下次登入才會發現 */}
+      <Field
+        id="confirmPassword"
+        label="確認密碼"
+        type="password"
+        value={confirmPassword}
+        onChange={updateConfirmPassword}
+        autoComplete="new-password"
+        errors={confirmError ? [confirmError] : undefined}
       />
       <Field
         id="name"

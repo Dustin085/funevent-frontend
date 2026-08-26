@@ -14,10 +14,25 @@ export function ResetPasswordForm() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  /** 整體錯誤：409 email 重複、502 連不上… */
+  /** 整體錯誤：token 失效、502 連不上… */
   const [error, setError] = useState<string | null>(null);
   /** 欄位層級錯誤：400 @Valid 驗證失敗 */
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  /**
+   * ⚠️ 和 fieldErrors 分開：那個是後端回來的，這個純粹是前端防打錯。
+   * 後端的 ResetPasswordRequest 沒有 confirmPassword 這個欄位
+   */
+  const [confirmError, setConfirmError] = useState<string | null>(null);
+
+  // 使用者一開始修正就把紅字清掉
+  const updateNewPassword = (value: string) => {
+    setNewPassword(value);
+    setConfirmError(null);
+  };
+  const updateConfirmPassword = (value: string) => {
+    setConfirmPassword(value);
+    setConfirmError(null);
+  };
 
   // 沒有 token 就不用打 API，一定會是 InvalidResetTokenException
   if (!token) {
@@ -32,13 +47,17 @@ export function ResetPasswordForm() {
     e.preventDefault();
 
     if (newPassword !== confirmPassword) {
-      setError("兩次輸入的密碼不一致");
-      return; // 連 API 都不用打
+      // ⚠️ 顯示在欄位上而不是整體訊息 —— 錯的是那個欄位，
+      // 而且整體訊息區還要留給後端回來的 token 失效之類的錯誤。
+      // 連 API 都不用打
+      setConfirmError("兩次輸入的密碼不一致");
+      return;
     }
 
     setLoading(true);
     setError(null);
     setFieldErrors({});
+    setConfirmError(null);
 
     try {
       const res = await fetch("/api/auth/reset-password", {
@@ -96,7 +115,7 @@ export function ResetPasswordForm() {
         label="新密碼"
         type="password"
         value={newPassword}
-        onChange={setNewPassword}
+        onChange={updateNewPassword}
         autoComplete="new-password"
         errors={fieldErrors.newPassword}
       />
@@ -105,8 +124,9 @@ export function ResetPasswordForm() {
         label="確認密碼"
         type="password"
         value={confirmPassword}
-        onChange={setConfirmPassword}
+        onChange={updateConfirmPassword}
         autoComplete="new-password"
+        errors={confirmError ? [confirmError] : undefined}
       />
 
       {/* 欄位錯誤已顯示在各欄位下方，這裡只放整體訊息 */}

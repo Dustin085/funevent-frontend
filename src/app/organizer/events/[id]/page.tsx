@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { EventForm } from "@/features/organizer/components/EventForm";
+import { EventInfoSection } from "@/features/organizer/components/EventInfoSection";
 import { EventStatusActions } from "@/features/organizer/components/EventStatusActions";
 import { EventStatusBadge } from "@/features/organizer/components/EventStatusBadge";
 import { TicketTypeSection } from "@/features/organizer/components/TicketTypeSection";
@@ -87,7 +87,7 @@ export default async function EditEventPage({
 
       <section className="rounded-[10px] bg-white p-6 funevent-shadow sm:p-8">
         <h2 className="mb-5 text-[20px] font-medium text-ink-soft">活動資訊</h2>
-        <EventForm categories={categories} cities={cities} event={event} />
+        <EventInfoSection event={event} categories={categories} cities={cities} />
       </section>
 
       <section className="rounded-[10px] bg-white p-6 funevent-shadow sm:p-8">

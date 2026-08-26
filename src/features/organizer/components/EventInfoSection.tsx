@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { EditableBlock } from "@/components/EditableBlock";
 import { EventForm } from "./EventForm";
 import { formatEventDateTime } from "@/lib/format-date";
 import { isAllowedImageUrl } from "@/lib/image-hosts";
@@ -14,9 +14,8 @@ import type {
 /**
  * 主辦者後台的「活動資訊」：平常是唯讀檢視，按下編輯才變成表單。
  *
- * ⭐ 用條件渲染切換而不是把表單設成 disabled —— 這樣 EventForm 每次進入
- * 編輯模式都會**重新掛載**，RHF 的 defaultValues 會從最新的 event prop
- * 重新讀一次。取消等於丟棄，不需要自己呼叫 reset()。
+ * 「唯讀 ↔ 編輯」的切換行為交給 {@link EditableBlock} —— 站上有三個地方
+ * 用同一套（這裡、姓名、密碼），各寫一次遲早會有一份忘記某個細節。
  */
 export function EventInfoSection({
   event,
@@ -27,31 +26,20 @@ export function EventInfoSection({
   categories: CategoryResponse[];
   cities: CityResponse[];
 }) {
-  const [editing, setEditing] = useState(false);
-
-  if (editing) {
-    return (
-      <EventForm
-        event={event}
-        categories={categories}
-        cities={cities}
-        onCancel={() => setEditing(false)}
-        onSaved={() => setEditing(false)}
-      />
-    );
-  }
-
   return (
-    <div className="flex flex-col gap-5">
-      <EventInfoView event={event} />
-      <button
-        type="button"
-        onClick={() => setEditing(true)}
-        className="self-start rounded-[10px] bg-brand px-6 py-2.5 text-white transition-colors duration-[350ms] hover:bg-brand-hover"
-      >
-        編輯活動資訊
-      </button>
-    </div>
+    <EditableBlock
+      editLabel="編輯活動資訊"
+      view={<EventInfoView event={event} />}
+      renderForm={(exit) => (
+        <EventForm
+          event={event}
+          categories={categories}
+          cities={cities}
+          onCancel={exit}
+          onSaved={exit}
+        />
+      )}
+    />
   );
 }
 

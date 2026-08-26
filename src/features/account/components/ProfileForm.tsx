@@ -14,7 +14,17 @@ const profileFormSchema = z.object({
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
-export function ProfileForm({ defaultName }: { defaultName: string }) {
+export function ProfileForm({
+  defaultName,
+  onCancel,
+  onSaved,
+}: {
+  defaultName: string;
+  /** 有給就渲染「取消」按鈕 */
+  onCancel?: () => void;
+  /** 儲存成功後呼叫，讓外層切回唯讀 */
+  onSaved?: () => void;
+}) {
   const router = useRouter();
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,9 +54,16 @@ export function ProfileForm({ defaultName }: { defaultName: string }) {
         return;
       }
 
-      setSaved(true);
-      // Topbar 的「你好，某某」是 Server Component 渲染的，refresh 才會跟著更新
+      // Topbar 的「你好，某某」與側邊欄都是 Server Component 渲染的，
+      // refresh 才會跟著更新
       router.refresh();
+      if (onSaved) {
+        // ⚠️ 這裡不設 saved —— 元件馬上會被卸載。
+        // 而且收合後看得到新名字，那本身就是「存好了」的證明
+        onSaved();
+      } else {
+        setSaved(true);
+      }
     } catch {
       setError("無法連線，請檢查網路");
     }
@@ -60,7 +77,7 @@ export function ProfileForm({ defaultName }: { defaultName: string }) {
     >
       <div className="flex flex-col gap-1">
         <label htmlFor="name" className="text-[15px] font-medium text-ink-soft">
-          名字
+          姓名
         </label>
         <input
           id="name"
@@ -89,13 +106,28 @@ export function ProfileForm({ defaultName }: { defaultName: string }) {
         </p>
       )}
 
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="self-start rounded-[10px] bg-brand px-6 py-2.5 text-white transition-colors duration-[350ms] hover:bg-brand-hover disabled:opacity-50"
-      >
-        {isSubmitting ? "儲存中…" : "儲存"}
-      </button>
+      <div className="flex items-center gap-3">
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="rounded-[10px] bg-brand px-6 py-2.5 text-white transition-colors duration-[350ms] hover:bg-brand-hover disabled:opacity-50"
+        >
+          {isSubmitting ? "儲存中…" : "儲存"}
+        </button>
+        {/* ⚠️ type="button"：在 <form> 裡沒指定 type 的 button 預設是 submit，
+            按「取消」會變成送出表單。
+            ⚠️ 只有一個欄位，不做二次確認 —— 確認的成本要跟損失成比例 */}
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={isSubmitting}
+            className="rounded-[10px] border border-[#d9d9d9] px-6 py-2.5 text-ink-soft transition-colors duration-[350ms] hover:border-brand disabled:opacity-50"
+          >
+            取消
+          </button>
+        )}
+      </div>
     </form>
   );
 }

@@ -26,7 +26,15 @@ const passwordFormSchema = z
 
 type PasswordFormValues = z.infer<typeof passwordFormSchema>;
 
-export function PasswordForm() {
+export function PasswordForm({
+  onCancel,
+  onSaved,
+}: {
+  /** 有給就渲染「取消」按鈕 */
+  onCancel?: () => void;
+  /** 更新成功後呼叫，讓外層切回唯讀並顯示提示 */
+  onSaved?: () => void;
+} = {}) {
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -62,9 +70,16 @@ export function PasswordForm() {
         return;
       }
 
-      setDone(true);
       // ⚠️ 密碼欄位一定要清掉，不要留在畫面上
       reset();
+      if (onSaved) {
+        // ⚠️ 收合之後畫面上只剩 ••••••••，看不出剛才成功了 ——
+        // 「密碼已更新」那句話由外層在唯讀狀態顯示。
+        // 使用者需要知道自己剛把其他裝置踢掉了
+        onSaved();
+      } else {
+        setDone(true);
+      }
     } catch {
       setError("無法連線，請檢查網路");
     }
@@ -109,13 +124,27 @@ export function PasswordForm() {
         </p>
       )}
 
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="self-start rounded-[10px] bg-brand px-6 py-2.5 text-white transition-colors duration-[350ms] hover:bg-brand-hover disabled:opacity-50"
-      >
-        {isSubmitting ? "更新中…" : "更新密碼"}
-      </button>
+      <div className="flex items-center gap-3">
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="rounded-[10px] bg-brand px-6 py-2.5 text-white transition-colors duration-[350ms] hover:bg-brand-hover disabled:opacity-50"
+        >
+          {isSubmitting ? "更新中…" : "更新密碼"}
+        </button>
+        {/* ⚠️ type="button"，理由同 ProfileForm。
+            密碼欄位重打的成本很低，不做二次確認 */}
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={isSubmitting}
+            className="rounded-[10px] border border-[#d9d9d9] px-6 py-2.5 text-ink-soft transition-colors duration-[350ms] hover:border-brand disabled:opacity-50"
+          >
+            取消
+          </button>
+        )}
+      </div>
     </form>
   );
 }

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { SectionTitle } from "@/components/SectionTitle";
-import { PasswordForm } from "@/features/account/components/PasswordForm";
-import { ProfileForm } from "@/features/account/components/ProfileForm";
+import { PasswordSection } from "@/features/account/components/PasswordSection";
+import { ProfileSection } from "@/features/account/components/ProfileSection";
 import { getCurrentUser } from "@/lib/get-current-user";
 
 // robots noindex：要登入才有內容，爬蟲只會拿到空殼
@@ -22,18 +22,19 @@ export default async function AccountPage() {
       <SectionTitle title="帳號管理" />
 
       <Section title="基本資料">
-        <div className="mb-4 flex flex-col gap-1">
+        {/* ⚠️ email 放在 EditableBlock **外面** —— 它永遠不能改，
+            換信箱必須先驗證新信箱（寄確認信），否則等於讓人把帳號改成
+            別人的信箱。那是另一套流程，還沒做 */}
+        <div className="mb-5 flex flex-col gap-1">
           <p className="text-[15px] font-medium text-ink-soft">電子信箱</p>
-          {/* ⚠️ 唯讀：換信箱必須先驗證新信箱（寄確認信），
-              否則等於讓人把帳號改成別人的信箱。那是另一套流程，還沒做 */}
           <p className="text-ink-muted">{user.email}</p>
         </div>
-        <ProfileForm defaultName={user.name} />
+        <ProfileSection name={user.name} />
       </Section>
 
       <Section title="密碼">
         {user.hasPassword ? (
-          <PasswordForm />
+          <PasswordSection />
         ) : (
           /* ⚠️ 第三方登入建立的帳號沒有密碼，「修改」不成立。
              「為第三方帳號設定密碼」是另一支端點，還沒做 */

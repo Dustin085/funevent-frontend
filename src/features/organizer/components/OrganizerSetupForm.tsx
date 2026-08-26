@@ -91,7 +91,7 @@ export function OrganizerSetupForm({
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="例如：蘭響音樂教室"
-          className="rounded border border-gray-300 px-3 py-2 outline-none focus:border-brand"
+          className="rounded border bg-surface border-gray-300 px-3 py-2 outline-none focus:border-brand"
         />
       </div>
 
@@ -110,7 +110,7 @@ export function OrganizerSetupForm({
           value={introduction}
           onChange={(e) => setIntroduction(e.target.value)}
           placeholder="會顯示在你的活動頁面上"
-          className="rounded border border-gray-300 px-3 py-2 outline-none focus:border-brand"
+          className="rounded border bg-surface border-gray-300 px-3 py-2 outline-none focus:border-brand"
         />
       </div>
 

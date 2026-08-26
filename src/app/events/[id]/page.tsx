@@ -16,6 +16,7 @@ import { TicketTypePicker } from "@/features/events/components/TicketTypePicker"
 import type { TicketTypeOption } from "@/features/events/components/TicketTypePicker";
 import { formatEventDateTime } from "@/lib/format-date";
 import { getCurrentUser } from "@/lib/get-current-user";
+import { isAllowedImageUrl } from "@/lib/image-hosts";
 import { SpringApiError, springGet } from "@/lib/spring";
 import type {
   CommentResponse,
@@ -207,7 +208,12 @@ export default async function EventDetailPage({
           style={{ scrollMarginTop: SECTION_ANCHOR_OFFSET }}
           className="lg:col-start-1 lg:row-start-1"
         >
-          <EventImageCarousel images={event.imageUrls} alt={event.name} />
+          {/* ⚠️ 先濾掉不能顯示的網址再交給輪播 —— 留在陣列裡的話，
+              next/image 會拋錯讓整個詳情頁崩潰，而且輪播的索引也會對不上 */}
+          <EventImageCarousel
+            images={event.imageUrls.filter(isAllowedImageUrl)}
+            alt={event.name}
+          />
         </div>
 
         {/* 右上：活動資訊卡。justify-center 讓內容在被同列的輪播撐高時垂直置中

@@ -1,9 +1,10 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { Field, inputClass } from "./Field";
 import {
   eventFormSchema,
@@ -11,6 +12,7 @@ import {
   taipeiLocalToInstant,
   type EventFormValues,
 } from "@/lib/event-form-schema";
+import { isAllowedImageUrl } from "@/lib/image-hosts";
 import type {
   ApiError,
   CategoryResponse,
@@ -51,6 +53,8 @@ export function EventForm({
   const {
     register,
     handleSubmit,
+    control,
+    watch,
     formState: { errors, isSubmitting, isDirty },
   } = useForm<EventFormValues>({
     resolver: zodResolver(eventFormSchema),
@@ -58,21 +62,34 @@ export function EventForm({
     // 一次噴出五個錯誤很傷；onBlur 是離開欄位就驗 —— 比 onChange 溫和，
     // 打字打到一半不會被紅字追著跑
     mode: "onBlur",
-    defaultValues: event && {
-      name: event.name,
-      description: event.description,
-      // ⚠️ UTC → 台北時間。不轉的話編輯時看到的時間會比自己填的少 8 小時
-      startAt: instantToTaipeiLocal(event.startAt),
-      endAt: instantToTaipeiLocal(event.endAt),
-      category: event.categoryCode,
-      // ⚠️ 用 cityCode 不是 city —— city 是顯示用的簡稱（「台北」），
-      // 拿它去比對 <option value="TAIPEI"> 永遠對不上，select 會變成空的
-      city: event.cityCode,
-      district: event.district ?? "",
-      locationName: event.locationName ?? "",
-      address: event.address ?? "",
+    // ⚠️ imageUrls 要拉到展開之外：建立模式時 event 是 undefined，
+    // 整個 defaultValues 會是 undefined，useFieldArray 就沒有初始值。
+    // 其餘欄位維持「只有編輯模式才給預設值」的原本行為
+    defaultValues: {
+      ...(event && {
+        name: event.name,
+        description: event.description,
+        // ⚠️ UTC → 台北時間。不轉的話編輯時看到的時間會比自己填的少 8 小時
+        startAt: instantToTaipeiLocal(event.startAt),
+        endAt: instantToTaipeiLocal(event.endAt),
+        category: event.categoryCode,
+        // ⚠️ 用 cityCode 不是 city —— city 是顯示用的簡稱（「台北」），
+        // 拿它去比對 <option value="TAIPEI"> 永遠對不上，select 會變成空的
+        city: event.cityCode,
+        district: event.district ?? "",
+        locationName: event.locationName ?? "",
+        address: event.address ?? "",
+      }),
+      // string[] → {url}[]，見 schema 裡的說明
+      imageUrls: event?.imageUrls.map((url) => ({ url })) ?? [],
     },
   });
+
+  const images = useFieldArray({ control, name: "imageUrls" });
+  // 縮圖要即時反映使用者貼上的網址，所以要 watch 而不是讀 fields
+  //（fields 只是掛載當下的快照，之後不會跟著輸入變動）
+  const imageValues = watch("imageUrls");
+  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
 
   const onSubmit = async (values: EventFormValues) => {
     setSubmitError(null);
@@ -96,6 +113,9 @@ export function EventForm({
             address: values.address || null,
             startAt: taipeiLocalToInstant(values.startAt),
             endAt: taipeiLocalToInstant(values.endAt),
+            // ⚠️ {url}[] → string[]。轉型集中在「送給 API」這個邊界上，
+            // 表單狀態裡維持 useFieldArray 需要的物件形狀
+            imageUrls: values.imageUrls.map((image) => image.url),
           }),
         },
       );
@@ -281,6 +301,129 @@ export function EventForm({
           placeholder="例如：台北市中山區南京東路二段100號5樓"
         />
       </Field>
+
+      <fieldset className="flex flex-col gap-3">
+        <legend className="text-[15px] font-medium text-ink-soft">
+          活動圖片
+          <span className="ml-1 font-normal text-ink-muted">
+            （選填，最多 10 張，第一張是封面）
+          </span>
+        </legend>
+
+        {images.fields.length === 0 && (
+          <p className="text-[14px] text-ink-muted">
+            還沒有圖片。可以到 Unsplash 找圖，
+            <strong>在圖片上按右鍵「複製圖片位址」</strong>
+            貼進來（網頁網址不行，要 images.unsplash.com 開頭的那個）。
+          </p>
+        )}
+
+        <ul className="flex flex-col gap-2">
+          {images.fields.map((field, index) => (
+            <li
+              key={field.id}
+              // ⚠️ 整列當放置目標，但只有把手是 draggable ——
+              // 整列都 draggable 的話輸入框裡的文字就選不起來了
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={() => {
+                if (draggingIndex !== null && draggingIndex !== index) {
+                  images.move(draggingIndex, index);
+                }
+                setDraggingIndex(null);
+              }}
+              className={`flex items-center gap-2 rounded-[10px] border p-2 transition-colors duration-[350ms] ${
+                draggingIndex === index
+                  ? "border-brand bg-[#f7f9f9]"
+                  : "border-[#d9d9d9]"
+              }`}
+            >
+              <span
+                draggable
+                onDragStart={() => setDraggingIndex(index)}
+                onDragEnd={() => setDraggingIndex(null)}
+                aria-hidden
+                title="拖曳排序"
+                className="cursor-grab px-1 text-ink-muted select-none active:cursor-grabbing"
+              >
+                ⠿
+              </span>
+
+              {/* 縮圖。⚠️ 一定要先過 isAllowedImageUrl：打字打到一半的網址
+                  是常態，而 next/image 對不合法的 src 是**拋錯**，
+                  會讓整個表單當場掛掉 */}
+              {isAllowedImageUrl(imageValues?.[index]?.url) ? (
+                <Image
+                  src={imageValues[index].url}
+                  alt=""
+                  width={64}
+                  height={48}
+                  aria-hidden
+                  unoptimized
+                  className="h-12 w-16 shrink-0 rounded object-cover"
+                />
+              ) : (
+                <span className="h-12 w-16 shrink-0 rounded bg-[#f7f9f9]" />
+              )}
+
+              <div className="min-w-0 flex-1">
+                <input
+                  {...register(`imageUrls.${index}.url`)}
+                  placeholder="https://images.unsplash.com/photo-..."
+                  aria-label={`第 ${index + 1} 張圖片的網址`}
+                  className={inputClass(!!errors.imageUrls?.[index]?.url)}
+                />
+                {index === 0 && (
+                  <p className="mt-1 text-[13px] text-brand-teal">封面</p>
+                )}
+                {errors.imageUrls?.[index]?.url && (
+                  <p role="alert" className="mt-1 text-sm text-red-600">
+                    {errors.imageUrls[index]?.url?.message}
+                  </p>
+                )}
+              </div>
+
+              {/* ⚠️ 上下移動不是多餘的：HTML5 拖曳在觸控裝置上不會觸發，
+                  鍵盤使用者也拖不動。這兩顆才是所有人都能用的排序方式 */}
+              <button
+                type="button"
+                onClick={() => images.move(index, index - 1)}
+                disabled={index === 0}
+                aria-label={`把第 ${index + 1} 張往前移`}
+                className="px-1 text-ink-muted transition-colors duration-[350ms] hover:text-brand disabled:opacity-30"
+              >
+                ↑
+              </button>
+              <button
+                type="button"
+                onClick={() => images.move(index, index + 1)}
+                disabled={index === images.fields.length - 1}
+                aria-label={`把第 ${index + 1} 張往後移`}
+                className="px-1 text-ink-muted transition-colors duration-[350ms] hover:text-brand disabled:opacity-30"
+              >
+                ↓
+              </button>
+              <button
+                type="button"
+                onClick={() => images.remove(index)}
+                aria-label={`移除第 ${index + 1} 張`}
+                className="px-1 text-[14px] text-red-600 transition-opacity duration-[350ms] hover:opacity-70"
+              >
+                移除
+              </button>
+            </li>
+          ))}
+        </ul>
+
+        {images.fields.length < 10 && (
+          <button
+            type="button"
+            onClick={() => images.append({ url: "" })}
+            className="self-start rounded-[10px] border border-[#d9d9d9] px-4 py-2 text-[15px] text-ink-soft transition-colors duration-[350ms] hover:border-brand"
+          >
+            ＋ 新增圖片
+          </button>
+        )}
+      </fieldset>
 
       {submitError && (
         <p role="alert" className="text-sm text-red-600">

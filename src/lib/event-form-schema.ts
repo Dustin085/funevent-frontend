@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ALLOWED_IMAGE_HOSTS_HINT, isAllowedImageUrl } from "./image-hosts";
 
 /**
  * ⚠️ 這份 schema 是後端 CreateEventRequest 的 Bean Validation 的「第二份」。
@@ -23,6 +24,28 @@ export const eventFormSchema = z
     district: z.string().trim().max(50).optional(),
     locationName: z.string().trim().max(255).optional(),
     address: z.string().trim().max(255).optional(),
+    /**
+     * ⚠️ 是「物件陣列」而不是字串陣列：RHF 的 useFieldArray 需要每一列有
+     * 穩定的身分才能正確處理新增／刪除／排序，原始字串沒有身分可以追蹤。
+     * 送出時再 map 成 string[]（後端要的是那個）。
+     *
+     * ⚠️ 必須連「網域在不在白名單裡」一起擋掉，不能只檢查格式 ——
+     * next/image 對白名單外的網域是**拋錯**不是顯示失敗，
+     * 讓這種網址存進資料庫等於在首頁埋一顆地雷。詳見 image-hosts.ts
+     */
+    imageUrls: z
+      .array(
+        z.object({
+          url: z
+            .string()
+            .trim()
+            .max(500, "圖片網址過長")
+            .refine(isAllowedImageUrl, {
+              message: `圖片網址必須來自：${ALLOWED_IMAGE_HOSTS_HINT}`,
+            }),
+        }),
+      )
+      .max(10, "圖片最多 10 張"),
   })
   // ⚠️ 跨欄位驗證要用 refine，而且 path 要指到「使用者該去改的那一格」——
   // 指到 startAt 的話，使用者會盯著開始時間找不到問題。

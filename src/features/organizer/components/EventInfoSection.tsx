@@ -1,8 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { EventForm } from "./EventForm";
 import { formatEventDateTime } from "@/lib/format-date";
+import { isAllowedImageUrl } from "@/lib/image-hosts";
 import type {
   CategoryResponse,
   CityResponse,
@@ -55,6 +57,10 @@ export function EventInfoSection({
 
 /** 唯讀檢視。九個欄位全部列出，選填的沒填就顯示「未提供」 */
 function EventInfoView({ event }: { event: EventResponse }) {
+  // ⚠️ 濾掉不能顯示的網址 —— 白名單外的網域會讓 next/image 拋錯。
+  // 舊資料或直接打 API 存進來的網址都可能是這種
+  const displayableImages = event.imageUrls.filter(isAllowedImageUrl);
+
   return (
     <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-[auto_1fr]">
       <InfoRow label="活動名稱">{event.name}</InfoRow>
@@ -82,6 +88,30 @@ function EventInfoView({ event }: { event: EventResponse }) {
 
       <InfoRow label="場地名稱">{event.locationName}</InfoRow>
       <InfoRow label="詳細地址">{event.address}</InfoRow>
+
+      <InfoRow label="活動圖片">
+        {displayableImages.length > 0 && (
+          <ul className="flex flex-wrap gap-2">
+            {displayableImages.map((url, index) => (
+              <li key={url} className="relative">
+                <Image
+                  src={url}
+                  alt=""
+                  width={96}
+                  height={72}
+                  aria-hidden
+                  className="h-[72px] w-24 rounded object-cover"
+                />
+                {index === 0 && (
+                  <span className="absolute bottom-0 left-0 rounded-tr rounded-bl bg-brand-teal px-1.5 text-[12px] text-white">
+                    封面
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </InfoRow>
     </dl>
   );
 }
@@ -93,9 +123,13 @@ function InfoRow({
   label: string;
   children: React.ReactNode;
 }) {
-  // 選填欄位可能是 null 或空字串，兩種都要當成「沒填」
+  // 選填欄位可能是 null、undefined、空字串，
+  // ⚠️ 還有 false —— {list.length > 0 && <ul/>} 在清單為空時給的就是 false
   const isEmpty =
-    children === null || children === undefined || children === "";
+    children === null ||
+    children === undefined ||
+    children === "" ||
+    children === false;
 
   return (
     <>

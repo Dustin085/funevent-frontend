@@ -4,6 +4,7 @@ import { Decoration } from "@/components/Decoration";
 import { Hero } from "@/features/home/components/Hero";
 import type { HeroSlide } from "@/features/home/components/HeroCarousel";
 import { TopicSection } from "@/features/home/components/TopicSection";
+import { isAllowedImageUrl } from "@/lib/image-hosts";
 import { springGet } from "@/lib/spring";
 import type {
   CategoryResponse,
@@ -36,7 +37,8 @@ export default async function Home() {
   // 除非寫型別謂詞，否則後面就得用 !
   const heroSlides: HeroSlide[] = upcoming.content
     .flatMap((event) =>
-      event.coverImageUrl
+      // ⚠️ isAllowedImageUrl 而不是只判斷有沒有值 —— 見 image-hosts.ts
+      isAllowedImageUrl(event.coverImageUrl)
         ? [
             {
               imageUrl: event.coverImageUrl,

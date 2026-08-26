@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { formatEventDateTime } from "@/lib/format-date";
+import { isAllowedImageUrl } from "@/lib/image-hosts";
 import type { EventSummaryResponse } from "@/lib/api-types";
 
 /**
@@ -26,7 +27,10 @@ export function EventCard({ event }: { event: EventSummaryResponse }) {
         href={href}
         className="relative flex h-[194px] w-full flex-col justify-end overflow-hidden rounded-[10px] bg-linear-to-br from-brand-teal to-brand shadow-[inset_0_0_10px_0_rgba(0,0,0,0.5)] transition-transform duration-[350ms] group-hover:scale-[1.02]"
       >
-        {event.coverImageUrl && (
+        {/* ⚠️ 不能只判斷「有沒有值」：圖片網址是主辦者手貼的，白名單外的網域
+            會讓 next/image 拋錯 —— 而這張卡片出現在首頁和搜尋頁，
+            一個人打錯字就足以讓全站首頁崩潰。過不了就退回底下的漸層 */}
+        {isAllowedImageUrl(event.coverImageUrl) && (
           <Image
             src={event.coverImageUrl}
             alt=""

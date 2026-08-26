@@ -7,6 +7,7 @@ import { EventStatusBadge } from "@/features/organizer/components/EventStatusBad
 import { formatEventDateTime } from "@/lib/format-date";
 import { getCurrentOrganizer } from "@/lib/get-current-organizer";
 import { getCurrentUser } from "@/lib/get-current-user";
+import { isAllowedImageUrl } from "@/lib/image-hosts";
 import { firstValue } from "@/lib/search-params";
 import { springGet } from "@/lib/spring";
 import type {
@@ -118,7 +119,8 @@ export default async function MyEventsPage({
             >
               {/* 沒有封面圖時用品牌色漸層佔位，版面不會塌 */}
               <div className="relative h-[90px] w-full shrink-0 overflow-hidden rounded-[8px] bg-linear-to-br from-brand-teal to-brand sm:w-[140px]">
-                {event.coverImageUrl && (
+                {/* ⚠️ 白名單外的網域會讓 next/image 拋錯，見 image-hosts.ts */}
+                {isAllowedImageUrl(event.coverImageUrl) && (
                   <Image
                     src={event.coverImageUrl}
                     alt=""

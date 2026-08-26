@@ -9,13 +9,14 @@ import Link from "next/link";
 /**
  * 評論表單要顯示什麼。
  *
- * ⚠️ 「有沒有買票」是後端的規則，前端不複製 —— 送出後由 403 回答。
- * 「是不是評過了」則是額外查了 GET .../comments/me 才知道的（見 page.tsx
- * 的 hasUserCommented），不是複製規則，是避免使用者填完表單才被 409 打回票。
+ * ⭐ 除了「有沒有登入」是前端自己知道的，其餘三種狀態全部來自後端的
+ * GET .../comments/eligibility —— 前端**不複製**資格規則，而是去問。
+ * 自己算的話，那些規則就會有第二份、而且遲早跟後端走鐘。
  */
 export type CommentFormState =
   | "form"
   | "not-started"
+  | "not-attended"
   | "login-required"
   | "already-commented";
 
@@ -67,8 +68,8 @@ export function EventComments({
 /**
  * 依狀態顯示表單或說明。
  *
- * ⚠️ 「活動還沒開始」與「請先登入」是**說明現況**，不是複製後端的資格規則 ——
- * 那兩件事前端本來就知道，顯示表單給他們反而是誤導。
+ * ⚠️ 這些訊息是**顯示後端給的答案**，不是前端自己判斷出來的 ——
+ * 除了「請先登入」（那是前端本來就知道的），其餘都來自 eligibility 端點。
  */
 function CommentFormArea({
   eventId,
@@ -103,6 +104,13 @@ function CommentFormArea({
     return (
       <p className="rounded-[10px] bg-[#f7f9f9] p-5 text-center text-ink-muted">
         你已經評論過這個活動了，感謝你的分享！
+      </p>
+    );
+  }
+  if (formState === "not-attended") {
+    return (
+      <p className="rounded-[10px] bg-[#f7f9f9] p-5 text-center text-ink-muted">
+        只有購票並完成付款的參加者可以留下評論。
       </p>
     );
   }

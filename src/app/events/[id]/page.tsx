@@ -19,6 +19,7 @@ import { getCurrentUser } from "@/lib/get-current-user";
 import { isAllowedImageUrl } from "@/lib/image-hosts";
 import { SpringApiError, springGet } from "@/lib/spring";
 import type {
+  CommentEligibilityResponse,
   CommentResponse,
   EventResponse,
   PagedModel,
@@ -67,18 +68,34 @@ const getEvent = cache((id: string) =>
 );
 
 /**
- * 只在「使用者已登入且活動已開始」時才會被呼叫（見下方 commentFormState）——
- * 沒登入的人不用查，反正結果一定是 login-required。
+ * 問後端「這個人現在能不能評論」。只在已登入時呼叫。
  *
- * 404 代表沒評論過，是正常分岔不是錯誤，所以在這裡吃掉；其他狀態碼往外拋。
+ * ⭐ 前端**不自己判斷**活動開始了沒、買過票沒、評過沒 ——
+ * 那三條是後端的資格規則，複製過來就會有第二份、遲早走鐘。
+ * 但也不能因此讓沒資格的人看到一張填完才被 403 打回票的表單，
+ * 所以答案用問的。
  */
-async function hasUserCommented(eventId: string): Promise<boolean> {
-  try {
-    await springGet(`/api/events/${eventId}/comments/me`, { auth: true });
-    return true;
-  } catch (error) {
-    if (error instanceof SpringApiError && error.status === 404) return false;
-    throw error;
+async function resolveCommentFormState(
+  eventId: string,
+): Promise<CommentFormState> {
+  const eligibility = await springGet<CommentEligibilityResponse>(
+    `/api/events/${eventId}/comments/eligibility`,
+    { auth: true },
+  );
+
+  if (eligibility.canComment) return "form";
+
+  switch (eligibility.reason) {
+    case "NOT_STARTED":
+      return "not-started";
+    case "NOT_ATTENDED":
+      return "not-attended";
+    case "ALREADY_COMMENTED":
+      return "already-commented";
+    default:
+      // ⚠️ 後端之後多一種 reason 時會走到這裡。顯示「不能評論」的通用說明
+      // 比顯示一張送不出去的表單好
+      return "not-attended";
   }
 }
 
@@ -152,21 +169,13 @@ export default async function EventDetailPage({
   }));
 
   // 評論表單要顯示什麼。
-  // ⚠️ 「有沒有買票」是後端的規則，前端不複製 —— 送出後由 403 回答，
-  // 訊息直接顯示出來。「是不是評過了」則反過來：這個查詢本來就要登入，
-  // 不查白不查，查了就能避免使用者填完表單才在送出時被 409 打回票。
+  // ⭐ 前端只判斷「有沒有登入」—— 那是它本來就知道的事（cookie）。
+  // 其餘三種狀態全部去問後端，資格規則不複製一份到這裡。
   // getCurrentUser 有 cache()，layout 已經呼叫過，這裡不會再打一次後端
   const user = await getCurrentUser();
-  const eventStarted = Date.parse(event.startAt) <= now;
-
-  let commentFormState: CommentFormState;
-  if (!eventStarted) {
-    commentFormState = "not-started";
-  } else if (!user) {
-    commentFormState = "login-required";
-  } else {
-    commentFormState = (await hasUserCommented(id)) ? "already-commented" : "form";
-  }
+  const commentFormState: CommentFormState = user
+    ? await resolveCommentFormState(id)
+    : "login-required";
   // 登入後帶回評論區，而不是回到頁面頂端
   const commentLoginHref = `/login?next=${encodeURIComponent(
     `/events/${event.id}#${EVENT_SECTION_IDS.comments}`,

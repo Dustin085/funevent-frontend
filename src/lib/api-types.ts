@@ -103,6 +103,16 @@ export interface CityResponse {
   name: string;
 }
 
+/**
+ * 對應後端 CommentEligibilityResponse。
+ * ⭐ 資格規則只寫在後端一處，前端不是自己算而是來問
+ */
+export interface CommentEligibilityResponse {
+  canComment: boolean;
+  /** canComment 為 true 時是 null */
+  reason: "NOT_STARTED" | "NOT_ATTENDED" | "ALREADY_COMMENTED" | null;
+}
+
 /** 對應後端 CommentResponse */
 export interface CommentResponse {
   id: number;

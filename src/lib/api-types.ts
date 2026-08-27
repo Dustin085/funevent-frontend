@@ -113,6 +113,11 @@ export interface CommentEligibilityResponse {
   reason: "NOT_STARTED" | "NOT_ATTENDED" | "ALREADY_COMMENTED" | null;
 }
 
+/** 對應後端 FavoriteStatusResponse */
+export interface FavoriteStatusResponse {
+  favorited: boolean;
+}
+
 /** 對應後端 CommentResponse */
 export interface CommentResponse {
   id: number;

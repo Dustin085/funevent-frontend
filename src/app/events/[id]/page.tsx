@@ -6,6 +6,8 @@ import { EventImageCarousel } from "@/features/events/components/EventImageCarou
 import { EventComments } from "@/features/events/components/EventComments";
 import type { CommentFormState } from "@/features/events/components/EventComments";
 import { EventInnerNav } from "@/features/events/components/EventInnerNav";
+import { FavoriteButton } from "@/features/events/components/FavoriteButton";
+import { ShareButton } from "@/features/events/components/ShareButton";
 // ⚠️ 常數要從中性模組拿，不能從上面那個 "use client" 檔案拿 ——
 // 那樣會拿到 client reference 代理，id 讀出來是 undefined
 import {
@@ -22,6 +24,7 @@ import type {
   CommentEligibilityResponse,
   CommentResponse,
   EventResponse,
+  FavoriteStatusResponse,
   PagedModel,
   TicketTypeResponse,
 } from "@/lib/api-types";
@@ -135,6 +138,20 @@ export async function generateMetadata({
   };
 }
 
+/**
+ * 我有沒有收藏這個活動。只在已登入時呼叫。
+ *
+ * ⚠️ 在伺服器端讀好當成 prop 傳下去，而不是讓按鈕自己在瀏覽器查 ——
+ * 那樣會有一瞬間顯示成「未收藏」再跳成「已收藏」。
+ */
+async function fetchFavorited(eventId: string): Promise<boolean> {
+  const status = await springGet<FavoriteStatusResponse>(
+    `/api/events/${eventId}/favorite`,
+    { auth: true },
+  );
+  return status.favorited;
+}
+
 export default async function EventDetailPage({
   params,
 }: PageProps<"/events/[id]">) {
@@ -173,9 +190,10 @@ export default async function EventDetailPage({
   // 其餘三種狀態全部去問後端，資格規則不複製一份到這裡。
   // getCurrentUser 有 cache()，layout 已經呼叫過，這裡不會再打一次後端
   const user = await getCurrentUser();
-  const commentFormState: CommentFormState = user
-    ? await resolveCommentFormState(id)
-    : "login-required";
+  // ⚠️ 兩支都只在登入時才需要，而且互不相依 —— 平行送出，不要一個等一個
+  const [commentFormState, favorited]: [CommentFormState, boolean | null] = user
+    ? await Promise.all([resolveCommentFormState(id), fetchFavorited(id)])
+    : ["login-required", null];
   // 登入後帶回評論區，而不是回到頁面頂端
   const commentLoginHref = `/login?next=${encodeURIComponent(
     `/events/${event.id}#${EVENT_SECTION_IDS.comments}`,
@@ -219,9 +237,21 @@ export default async function EventDetailPage({
         >
           {/* ⚠️ 先濾掉不能顯示的網址再交給輪播 —— 留在陣列裡的話，
               next/image 會拋錯讓整個詳情頁崩潰，而且輪播的索引也會對不上 */}
+          {/* 收藏／轉發按鈕交給輪播的 actions slot —— 舊版就是把它們跟
+              輪播控制組放在同一列（.event-intro-carousel-subtitle） */}
           <EventImageCarousel
             images={event.imageUrls.filter(isAllowedImageUrl)}
             alt={event.name}
+            actions={
+              <>
+                <FavoriteButton
+                  eventId={event.id}
+                  initialFavorited={favorited}
+                  loginHref={commentLoginHref}
+                />
+                <ShareButton />
+              </>
+            }
           />
         </div>
 

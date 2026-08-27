@@ -31,6 +31,7 @@ const MENU_GROUPS = [
     items: [
       { href: "/account", label: "帳號管理", icon: "account-manage" },
       { href: "/account/comments", label: "我的評論", icon: "my-comment" },
+      { href: "/account/favorites", label: "我的收藏", icon: "my-fav" },
     ],
   },
   {

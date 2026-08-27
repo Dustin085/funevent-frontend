@@ -16,6 +16,7 @@ const nextConfig: NextConfig = {
       hostname,
     })),
   },
+  allowedDevOrigins: ["10.140.2.140", "erasure-scuff-fading.ngrok-free.dev"],
 };
 
 export default nextConfig;

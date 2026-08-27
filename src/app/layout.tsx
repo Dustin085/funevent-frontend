@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Noto_Sans_TC } from "next/font/google";
+import { RefreshOnVisible } from "@/components/RefreshOnVisible";
 import { Topbar } from "@/components/Topbar";
 import { getCurrentUser } from "@/lib/get-current-user";
 import "./globals.css";
@@ -52,6 +53,11 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     >
       {/* font-sans 在 globals.css 的 @theme inline 裡指向 --font-noto-sans-tc */}
       <body className="flex min-h-full flex-col font-sans">
+        {/* ⭐ 掛在根 layout：切回這個分頁時重新取一次資料。
+            一份程式碼解掉兩件事 —— 別的分頁登出後 Topbar 還顯示登入中、
+            票券被核銷後買家頁面還顯示「可入場」。
+            ⚠️ 代價是每次切回分頁會多一次 RSC 請求 */}
+        <RefreshOnVisible />
         {/* 登入狀態當作 props 傳給 client component，
             Topbar 自己不抓資料也不存資料 */}
         <Topbar user={user} />

@@ -153,7 +153,8 @@ export default async function MyEventsPage({
                 </p>
               </div>
 
-              <div className="flex shrink-0 gap-2">
+              {/* ⚠️ flex-wrap：四顆按鈕在 375px 寬度下會擠，讓它自然換行 */}
+              <div className="flex shrink-0 flex-wrap gap-2">
                 <Link
                   href={`/organizer/events/${event.id}/orders`}
                   className="flex h-[38px] items-center rounded-[10px] border border-[#d9d9d9] px-4 text-[15px] text-ink-soft transition-colors duration-[350ms] hover:text-brand"
@@ -166,15 +167,27 @@ export default async function MyEventsPage({
                 >
                   編輯
                 </Link>
-                {/* ⚠️ 「查看」只在已發布時出現 —— 草稿與已取消的公開頁面會 404，
+                {/* ⚠️ 「查看」與「驗票」都只在已發布時出現 ——
+                    草稿的公開頁面會 404，也不可能有人買到票。
                     放一個必定壞掉的連結比沒有更糟 */}
                 {event.status === "PUBLISHED" && (
-                  <Link
-                    href={`/events/${event.id}`}
-                    className="flex h-[38px] items-center rounded-[10px] bg-brand-teal px-4 text-[15px] text-white transition-colors duration-[350ms] hover:bg-brand-teal-hover"
-                  >
-                    查看
-                  </Link>
+                  <>
+                    <Link
+                      href={`/events/${event.id}`}
+                      className="flex h-[38px] items-center rounded-[10px] border border-[#d9d9d9] px-4 text-[15px] text-ink-soft transition-colors duration-[350ms] hover:text-brand"
+                    >
+                      查看
+                    </Link>
+                    {/* ⭐ 唯一的實心按鈕。驗票是在場館、拿著手機、趕時間時要按的東西，
+                        其餘三顆都是坐在電腦前慢慢做的事 —— 視覺權重應該反映這個差別。
+                        （原本實心的是「查看」，那只是開公開頁面，優先級最低） */}
+                    <Link
+                      href={`/organizer/events/${event.id}/check-in`}
+                      className="flex h-[38px] items-center rounded-[10px] bg-brand-teal px-4 text-[15px] text-white transition-colors duration-[350ms] hover:bg-brand-teal-hover"
+                    >
+                      驗票
+                    </Link>
+                  </>
                 )}
               </div>
             </li>

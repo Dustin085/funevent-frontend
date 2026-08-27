@@ -66,12 +66,23 @@ export default async function EditEventPage({
           >
             ← 回到我的活動
           </Link>
-          <Link
-            href={`/organizer/events/${id}/orders`}
-            className="text-[14px] text-brand-teal transition-colors duration-[350ms] hover:text-brand-teal-hover"
-          >
-            查看訂單與銷售 →
-          </Link>
+          <div className="flex items-center gap-4">
+            {/* ⚠️ 只有已發布的活動才需要驗票 —— 草稿沒有人買得到票 */}
+            {event.status === "PUBLISHED" && (
+              <Link
+                href={`/organizer/events/${id}/check-in`}
+                className="text-[14px] text-brand-teal transition-colors duration-[350ms] hover:text-brand-teal-hover"
+              >
+                入場驗票 →
+              </Link>
+            )}
+            <Link
+              href={`/organizer/events/${id}/orders`}
+              className="text-[14px] text-brand-teal transition-colors duration-[350ms] hover:text-brand-teal-hover"
+            >
+              查看訂單與銷售 →
+            </Link>
+          </div>
         </div>
 
         <div className="mt-2 flex flex-wrap items-start justify-between gap-4">

@@ -113,6 +113,33 @@ export interface CommentEligibilityResponse {
   reason: "NOT_STARTED" | "NOT_ATTENDED" | "ALREADY_COMMENTED" | null;
 }
 
+export type TicketStatus = "VALID" | "USED" | "VOID";
+
+/** 對應後端 CheckInResponse */
+export interface CheckInResponse {
+  /** ⚠️ 這四種都是 HTTP 200 —— 對掃票的人來說「已使用」不是錯誤，是結果 */
+  result: "SUCCESS" | "ALREADY_USED" | "VOID" | "INVALID";
+  ticketTypeName: string | null;
+  attendeeName: string | null;
+  /** ALREADY_USED 時是上次核銷的時間。⚠️ 併發搶掃時可能是 null */
+  usedAt: string | null;
+}
+
+/** 對應後端 TicketResponse */
+export interface TicketResponse {
+  id: number;
+  eventName: string;
+  ticketTypeName: string;
+  status: TicketStatus;
+  /** 已核銷的時間。⚠️ 還沒使用的票是 null */
+  usedAt: string | null;
+  /**
+   * QR 的內容（簽章後的字串）。
+   * ⚠️ 這是**可入場的憑證** —— 顯示它的頁面必須 noindex，也不要記進 log
+   */
+  qrContent: string;
+}
+
 /** 對應後端 FavoriteStatusResponse */
 export interface FavoriteStatusResponse {
   favorited: boolean;

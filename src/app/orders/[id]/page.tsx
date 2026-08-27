@@ -3,9 +3,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { OrderStatusBadge } from "@/features/orders/components/OrderStatusBadge";
 import { PayButton } from "@/features/orders/components/PayButton";
+import { TicketCard } from "@/features/orders/components/TicketCard";
 import { formatEventDateTime } from "@/lib/format-date";
 import { SpringApiError, springGet } from "@/lib/spring";
-import type { OrderResponse } from "@/lib/api-types";
+import type { OrderResponse, TicketResponse } from "@/lib/api-types";
 
 export async function generateMetadata({
   params,
@@ -21,10 +22,17 @@ export default async function OrderDetailPage({
   const { id } = await params;
 
   let order: OrderResponse;
+  let tickets: TicketResponse[];
   try {
     // 需要登入才看得到，所以帶 token。別人的訂單後端一律回 404 ——
     // 訂單是私有資源，403 等於證實了這個 id 存在
-    order = await springGet<OrderResponse>(`/api/orders/${id}`, { auth: true });
+    //
+    // ⚠️ 兩支互不相依，平行送出。票券端點自己也會驗擁有權，
+    // 所以不會因為平行而漏掉權限檢查
+    [order, tickets] = await Promise.all([
+      springGet<OrderResponse>(`/api/orders/${id}`, { auth: true }),
+      springGet<TicketResponse[]>(`/api/orders/${id}/tickets`, { auth: true }),
+    ]);
   } catch (error) {
     if (error instanceof SpringApiError && error.status === 404) notFound();
     throw error;
@@ -95,6 +103,25 @@ export default async function OrderDetailPage({
           </p>
         )}
       </section>
+
+      {/* ⚠️ 未付款的訂單沒有票，端點會回空陣列 —— 那時整個區塊都不渲染，
+          而不是顯示一個空的「票券」標題 */}
+      {tickets.length > 0 && (
+        <section className="flex flex-col gap-4">
+          <h2 className="text-[20px] font-medium text-ink-soft">
+            票券
+            <span className="ml-2 text-[16px] font-normal text-ink-muted">
+              共 {tickets.length} 張
+            </span>
+          </h2>
+          {/* ⭐ 一張票一張卡 —— 買三張就是三張獨立的票，可以分開入場 */}
+          <ul className="flex flex-col gap-3">
+            {tickets.map((ticket) => (
+              <TicketCard key={ticket.id} ticket={ticket} />
+            ))}
+          </ul>
+        </section>
+      )}
     </main>
   );
 }

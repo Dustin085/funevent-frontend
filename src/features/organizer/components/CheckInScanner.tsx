@@ -1,6 +1,7 @@
 "use client";
 
 import { Html5Qrcode } from "html5-qrcode";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { formatEventDateTime } from "@/lib/format-date";
 import type { ApiError, CheckInResponse } from "@/lib/api-types";
@@ -9,6 +10,7 @@ import type { ApiError, CheckInResponse } from "@/lib/api-types";
 const READER_ELEMENT_ID = "check-in-reader";
 
 export function CheckInScanner({ eventId }: { eventId: number }) {
+  const router = useRouter();
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState<CheckInResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -93,8 +95,19 @@ export function CheckInScanner({ eventId }: { eventId: number }) {
     setPending(null);
     // ⚠️ 這裡的結果才是權威的 —— 預覽到確認之間，
     // 別的工作人員可能已經搶先核銷了
-    if (done) setResult(done);
-  }, [pending, post]);
+    if (done) {
+      setResult(done);
+      // ⭐ 重跑 Server Component，讓上面的入場進度跟著更新。
+      //
+      // ⚠️ 不論結果是 SUCCESS 還是 ALREADY_USED 都要刷新：
+      // ALREADY_USED 代表「別人剛剛掃過了」，也就是畫面上的數字**本來就是舊的** ——
+      // 那正是最需要更新的時候。
+      //
+      // ⚠️ router.refresh() 會保留 client component 的 state，
+      // 所以掃描結果、相機狀態都不會被洗掉
+      router.refresh();
+    }
+  }, [pending, post, router]);
 
   const stopCamera = useCallback(async () => {
     const scanner = scannerRef.current;

@@ -125,6 +125,30 @@ export interface CheckInResponse {
   usedAt: string | null;
 }
 
+/** 對應後端 TicketTypeCheckInProgress */
+export interface TicketTypeCheckInProgress {
+  ticketTypeId: number;
+  name: string;
+  checkedIn: number;
+  /** 應到人數。⚠️ VALID + USED，不含 VOID */
+  expected: number;
+  voided: number;
+}
+
+/**
+ * 對應後端 CheckInProgressResponse。
+ *
+ * ⚠️ `expected` 是「應到人數」不是「總共賣過幾張」—— 退掉的票（VOID）
+ * 刻意不算進分母，因為現場要看的是「還有多少人沒進來」。
+ * 退了幾張看 `voided`。
+ */
+export interface CheckInProgressResponse {
+  checkedIn: number;
+  expected: number;
+  voided: number;
+  byTicketType: TicketTypeCheckInProgress[];
+}
+
 /** 對應後端 TicketResponse */
 export interface TicketResponse {
   id: number;

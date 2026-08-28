@@ -1,11 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { CheckInProgress } from "@/features/organizer/components/CheckInProgress";
 import { CheckInScanner } from "@/features/organizer/components/CheckInScanner";
 import { getCurrentOrganizer } from "@/lib/get-current-organizer";
 import { getCurrentUser } from "@/lib/get-current-user";
 import { SpringApiError, springGet } from "@/lib/spring";
-import type { EventResponse, TicketTypeResponse } from "@/lib/api-types";
+import type {
+  CheckInProgressResponse,
+  EventResponse,
+  TicketTypeResponse,
+} from "@/lib/api-types";
 
 interface OrganizerEventDetail {
   event: EventResponse;
@@ -32,14 +37,24 @@ export default async function CheckInPage({
   if (!organizer) redirect("/organizer/setup");
 
   let detail: OrganizerEventDetail;
+  let progress: CheckInProgressResponse;
   try {
     // ⚠️ 這一支已經驗過擁有權（不是你的活動回 404）。
     // 核銷端點自己也會再驗一次 —— 前端的檢查只是為了不要讓人白跑一趟，
     // 真正的把關永遠在後端
-    detail = await springGet<OrganizerEventDetail>(
-      `/api/organizers/me/events/${id}`,
-      { auth: true },
-    );
+    //
+    // ⚠️ 進度<b>絕對不能</b>傳 revalidate —— springGet 不傳就是 cache: "no-store"，
+    // 那正是這裡要的。這一頁的數字每掃一張就會變，快取住的話工作人員會看到
+    // 停在幾分鐘前的入場人數，而且畫面上完全看不出來它是舊的
+    [detail, progress] = await Promise.all([
+      springGet<OrganizerEventDetail>(`/api/organizers/me/events/${id}`, {
+        auth: true,
+      }),
+      springGet<CheckInProgressResponse>(
+        `/api/organizers/me/events/${id}/check-in/progress`,
+        { auth: true },
+      ),
+    ]);
   } catch (error) {
     if (error instanceof SpringApiError && error.status === 404) notFound();
     throw error;
@@ -59,6 +74,8 @@ export default async function CheckInPage({
         </h1>
         <p className="mt-1 text-[16px] text-ink-muted">{detail.event.name}</p>
       </div>
+
+      <CheckInProgress progress={progress} />
 
       {/* ⚠️ 這一頁要在手機上用，版面刻意窄（max-w-[560px]）：
           掃描區與結果都要一眼看完，不需要橫向掃視 */}

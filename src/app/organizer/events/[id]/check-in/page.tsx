@@ -74,12 +74,10 @@ export default async function CheckInPage({
         </h1>
         <p className="mt-1 text-[16px] text-ink-muted">{detail.event.name}</p>
       </div>
-
-      <CheckInProgress progress={progress} />
-
       {/* ⚠️ 這一頁要在手機上用，版面刻意窄（max-w-[560px]）：
           掃描區與結果都要一眼看完，不需要橫向掃視 */}
       <CheckInScanner eventId={detail.event.id} />
+      <CheckInProgress progress={progress} />
     </main>
   );
 }
